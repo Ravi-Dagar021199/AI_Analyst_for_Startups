@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: ./web
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    command: npm run dev
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./services/api-gateway:/app
+      - /app/node_modules
+    command: npm run start
+
+  user-service:
+    build:
+      context: ./services/user-service
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./services/user-service:/app
+      - /app/node_modules
+    command: npm run start
+
+  reporting-service:
+    build:
+      context: ./services/reporting-service
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./services/reporting-service:/app
+      - /app/node_modules
+    command: npm run start
+
+  ingestion-service:
+    build:
+      context: ./services/ingestion-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/ingestion-service:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  analysis-service:
+    build:
+      context: ./services/analysis-service
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./services/analysis-service:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
