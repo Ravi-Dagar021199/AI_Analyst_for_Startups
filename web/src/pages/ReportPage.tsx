@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { Card, CardContent, Typography, CircularProgress, Box, Paper } from '@mui/material';
 
 interface ReportDetails {
   id: string;
@@ -27,16 +28,28 @@ export default function ReportPage() {
   }, [id]);
 
   if (!report) {
-    return <div>Loading report...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div>
-      <h2>{report.file_name}</h2>
-      <h3>Investment Memo</h3>
-      <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem' }}>
-        {report.investment_memo}
-      </pre>
-    </div>
+    <Card>
+      <CardContent>
+        <Typography variant="h5" component="div" gutterBottom>
+          {report.file_name}
+        </Typography>
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          Investment Memo
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, mt: 1, whiteSpace: 'pre-wrap', background: '#f9f9f9' }}>
+          <Typography variant="body2">
+            {report.investment_memo}
+          </Typography>
+        </Paper>
+      </CardContent>
+    </Card>
   );
 }

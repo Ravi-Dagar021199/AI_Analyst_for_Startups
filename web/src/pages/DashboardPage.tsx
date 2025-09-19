@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
+import { List, ListItem, ListItemText, Typography, Paper, Link } from '@mui/material';
 
 interface Report {
   id: string;
   file_name: string;
+  created_at: { _seconds: number };
 }
 
 export default function DashboardPage() {
@@ -23,15 +25,24 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div>
-      <h2>Analysis Reports</h2>
-      <ul>
-        {reports.map(report => (
-          <li key={report.id}>
-            <Link to={`/report/${report.id}`}>{report.file_name}</Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Paper elevation={3} sx={{ p: 2 }}>
+      <Typography variant="h4" gutterBottom>
+        Analysis Reports
+      </Typography>
+      <List>
+        {reports.length === 0 ? (
+          <Typography>No reports found. Upload a document to get started.</Typography>
+        ) : (
+          reports.map(report => (
+            <ListItem key={report.id} component={RouterLink} to={`/report/${report.id}`} button>
+              <ListItemText 
+                primary={report.file_name} 
+                secondary={`Analyzed on: ${new Date(report.created_at._seconds * 1000).toLocaleString()}`}
+              />
+            </ListItem>
+          ))
+        )}
+      </List>
+    </Paper>
   );
 }
