@@ -5,8 +5,10 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import axios from 'axios';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
+import ReportPage from './pages/ReportPage';
 
-function HomePage() {
+function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,9 +38,20 @@ function HomePage() {
 
   return (
     <div>
-      <h1>AI Startup Analyst</h1>
+      <h2>Upload Pitch Deck</h2>
       <input type="file" onChange={handleFileChange} />
-      <button onClick={handleUpload}>Upload Pitch Deck</button>
+      <button onClick={handleUpload}>Upload</button>
+    </div>
+  );
+}
+
+function HomePage() {
+  return (
+    <div>
+      <h1>AI Startup Analyst</h1>
+      <nav>
+        <Link to="/upload">Upload New Pitch Deck</Link> | <Link to="/dashboard">View Reports</Link>
+      </nav>
       <hr />
       <button onClick={() => auth.signOut()}>Sign Out</button>
     </div>
@@ -65,6 +78,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={user ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/upload" element={user ? <UploadPage /> : <Navigate to="/login" />} />
+        <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
+        <Route path="/report/:id" element={user ? <ReportPage /> : <Navigate to="/login" />} />
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
       </Routes>
