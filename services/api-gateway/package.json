@@ -4,7 +4,7 @@
   "description": "API Gateway for the platform",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "node --import tsx src/index.ts",
     "build": "tsc"
   },
   "dependencies": {

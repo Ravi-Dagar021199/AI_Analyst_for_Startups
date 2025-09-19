@@ -34,7 +34,7 @@ export default function DashboardPage() {
           <Typography>No reports found. Upload a document to get started.</Typography>
         ) : (
           reports.map(report => (
-            <ListItem key={report.id} component={RouterLink} to={`/report/${report.id}`} button>
+            <ListItem key={report.id} component={RouterLink} to={`/report/${report.id}`}>
               <ListItemText 
                 primary={report.file_name} 
                 secondary={`Analyzed on: ${new Date(report.created_at._seconds * 1000).toLocaleString()}`}

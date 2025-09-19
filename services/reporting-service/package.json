@@ -4,7 +4,7 @@
   "description": "Reporting service for generating memos",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "node --import tsx src/index.ts",
     "build": "tsc"
   },
   "dependencies": {

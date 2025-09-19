@@ -14,7 +14,7 @@ export default function RegisterPage() {
     setError('');
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     }
   };

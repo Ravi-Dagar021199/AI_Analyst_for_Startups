@@ -14,7 +14,7 @@ export default function LoginPage() {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     }
   };
