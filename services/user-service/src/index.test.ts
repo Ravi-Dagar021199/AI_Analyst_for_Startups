@@ -24,7 +24,19 @@ describe('POST /register', () => {
     const expectedUid = 'test-uid-123';
 
     // Configure the mock to return a successful response
-    mockedAuth.createUser.mockResolvedValue({ uid: expectedUid });
+    mockedAuth.createUser.mockResolvedValue({
+      uid: expectedUid,
+      email: userData.email,
+      emailVerified: false,
+      disabled: false,
+      metadata: {
+        creationTime: new Date().toUTCString(),
+        lastSignInTime: new Date().toUTCString(),
+        toJSON: () => ({}),
+      },
+      providerData: [],
+      toJSON: () => ({}),
+    } as any);
 
     const response = await request(app)
       .post('/register')
