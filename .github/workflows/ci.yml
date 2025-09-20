@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install frontend dependencies and build
+      run: |
+        cd web
+        npm install
+        npm run build
+
+    - name: Install api-gateway dependencies and build
+      run: |
+        cd services/api-gateway
+        npm install
+        npm run build
+
+    - name: Install user-service dependencies and build
+      run: |
+        cd services/user-service
+        npm install
+        npm run build
+
+    - name: Install reporting-service dependencies and build
+      run: |
+        cd services/reporting-service
+        npm install
+        npm run build
+
+    - name: Install ingestion-service dependencies
+      run: |
+        cd services/ingestion-service
+        pip install -r requirements.txt
+
+    - name: Install analysis-service dependencies
+      run: |
+        cd services/analysis-service
+        pip install -r requirements.txt
+
+    - name: Run user-service tests
+      run: |
+        cd services/user-service
+        npm test
