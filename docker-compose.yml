@@ -107,6 +107,13 @@ services:
     ports:
       - "8000:8000"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      GCS_BUCKET_NAME: ai-startup-analyst-uploads-ba7f9
+      PUBSUB_TOPIC_ID: file-uploads
+      FIREBASE_PROJECT_ID: ai-startup-analyst-ba7f9
+      GOOGLE_APPLICATION_CREDENTIALS: /app/serviceAccountKey.json
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json
 
   analysis-service:
     build:
@@ -114,3 +121,9 @@ services:
     ports:
       - "8001:8000"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      PUBSUB_SUBSCRIPTION_ID: file-uploads-sub
+      FIREBASE_PROJECT_ID: ai-startup-analyst-ba7f9
+      GOOGLE_APPLICATION_CREDENTIALS: /app/serviceAccountKey.json
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json
