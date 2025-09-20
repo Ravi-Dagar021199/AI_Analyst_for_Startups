@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
-import { List, ListItem, ListItemText, Typography, Paper, Link } from '@mui/material';
+import { List, ListItem, ListItemText, Typography, Paper } from '@mui/material';
 
 interface Report {
   id: string;
