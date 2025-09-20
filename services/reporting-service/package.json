@@ -4,8 +4,8 @@
   "description": "Reporting service for generating memos",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node --import tsx src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",

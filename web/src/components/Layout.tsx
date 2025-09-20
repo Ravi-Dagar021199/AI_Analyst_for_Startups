@@ -1,6 +1,6 @@
 import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
 import { Link, Outlet } from 'react-router-dom';
-import { auth } from './firebase';
+import { auth } from '../firebase';
 
 export default function Layout() {
   return (

@@ -4,8 +4,8 @@
   "description": "API Gateway for the platform",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node --import tsx src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "express": "^4.18.2"

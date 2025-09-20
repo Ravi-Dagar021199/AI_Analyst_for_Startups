@@ -16,7 +16,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./services/api-gateway:/app
       - /app/node_modules
     command: npm run start
 
@@ -26,9 +25,40 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./services/user-service:/app
       - /app/node_modules
     command: npm run start
+    environment:
+      FIREBASE_PROJECT_ID: ai-startup-analyst-ba7f9
+      FIREBASE_CLIENT_EMAIL: firebase-adminsdk-fbsvc@ai-startup-analyst-ba7f9.iam.gserviceaccount.com
+      FIREBASE_PRIVATE_KEY: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCeNih6bHOiANRG
+        ormyodjPbtyBrggRia93gJlKno9e9zQxhD49feLZ6W7LsX5xxXy98MEkN68RqeNZ
+        yDAND16W5F6/zHl98XrrBH1pEOUAUkrJzuwAZiUOdcVjyMfkpozfVw8/FYCDzxGh
+        xRHhAomMvW7t6kS/G0UD15Jr2auRQX8TxfC8RJ3iwnnxKK0hXfX3zk/bwF9vUMV5
+        k1uRD5SM8QvMr4w9E+cHECSDvM580LRnhUbr2FmK4cXv2ILOjV2w9Pbu+/JdBWnb
+        jW35iDEeFfrU3TM7lv1+SIRrN5B2k5rZZfrrPyKA+HMejkA5cAfnfu6FugsmR1+M
+        2bnTpmMDAgMBAAECggEAJWF9ceOC9LGGdkQHZSXpYKV8cyVn4aDq9OzNCzzoehMl
+        YVeyDvxZ54vIclc3HXGAVi52q/R+KEnAHlv2wncxraw6mM2anP+7v6CZcwQbX1aS
+        NhluWG/J7J816qwrUqJpYXGj+A9ABKSdsV+rKENdtYOinJL/+DlctpouDc5pw5Fa
+        +su8IIZgrEZ0KqozTvtVnOIvXqA/ZVplv925E67wLoYjKq5t0MZNk2e9gE+64Z0q
+        8BafXwTorOTKnl1/1FNmaNE5PfZipmxBZQFaeusB9qb9ZXRnvVHq0tk3XKvy9Ffj
+        Ai/BbgNbZAY0otF59fO3vaoHF7l85dGOiZY1zyZBJQKBgQDesRzRXrpihqHszDI0
+        EuCv3S99omdXEsQGsbJGI9LcQ6sR8cTSLb9bTzxKWUNglcyN2vV5MiU31TlJCICw
+        TqDb8WC8btJdEip5FvLo9GAEz1w1epgU+qMcBRVuk7nBD186/NGN6/cUs2Av5KsY
+        q/hIB+2fbBE0ii9tUzejMb24PQKBgQC14Bcj8M34n42zcLnU3iMgwMskHQieECfg
+        ta98lXPgA8w+K80mYOaD3rDL1uoYoSgZmYnzpAVSEiaS9KZfvbo4Bo9PHz7xBuyR
+        POp65c2NHsHFnBs4oLtnHnvzFW0JI31LUY9/QudQjCPvpzMNX9OPedRWH1huAKVc
+        Vm/uFqL8PwKBgAMTPQujHD3KEChd9X+Elze2fTZl7LlmF/DjuUuAqSPDh3Q6+3XP
+        jenr4TBBpU2LJAT9dhBTYfIwbpcUl/pXS59d6PERMrR4UL/VUktnPIA0gNh4Nets
+        Pp5fb5lUTudcl/sPjLFCBepyQ6zFops3nLkZ6u0dp+sq0VbYJFeLk0wdAoGAIM+H
+        fS1hCxxFpPyOGc/lSHBfdWljd5h0iT5dpT0VBXHJ8+FVBjpu+5U+Edf4rW7NXCjt
+        0S1i5FZv7Q0Dwrvoj1jnm5+IbFUScnUp2/f/KBlHXc32vzWH+WdvdwADhqWHYgIZ
+        wByivE474W0pcZ06/mQ9IThQbK/jJRBW6v3cc2MCgYAfCgfPv0/3NQO8hyI98Iel
+        +ASy2ji7hmJtfXdrqKZFf6tKn27M//xtFNcXxt6wDwUUXM3HSSAaOCsL8AReh0bY
+        1sbiabpvn+Zm7gBjPPWFjmJcCjnF5v24ghWf7VUO4HnNvE9iUGqESxCXFYybWXvA
+        pO97f3jU4h8GyMjeQz/Lcw==
+        -----END PRIVATE KEY-----
 
   reporting-service:
     build:
@@ -36,17 +66,46 @@ services:
     ports:
       - "3002:3002"
     volumes:
-      - ./services/reporting-service:/app
       - /app/node_modules
     command: npm run start
+    environment:
+      FIREBASE_PROJECT_ID: ai-startup-analyst-ba7f9
+      FIREBASE_CLIENT_EMAIL: firebase-adminsdk-fbsvc@ai-startup-analyst-ba7f9.iam.gserviceaccount.com
+      FIREBASE_PRIVATE_KEY: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCeNih6bHOiANRG
+        ormyodjPbtyBrggRia93gJlKno9e9zQxhD49feLZ6W7LsX5xxXy98MEkN68RqeNZ
+        yDAND16W5F6/zHl98XrrBH1pEOUAUkrJzuwAZiUOdcVjyMfkpozfVw8/FYCDzxGh
+        xRHhAomMvW7t6kS/G0UD15Jr2auRQX8TxfC8RJ3iwnnxKK0hXfX3zk/bwF9vUMV5
+        k1uRD5SM8QvMr4w9E+cHECSDvM580LRnhUbr2FmK4cXv2ILOjV2w9Pbu+/JdBWnb
+        jW35iDEeFfrU3TM7lv1+SIRrN5B2k5rZZfrrPyKA+HMejkA5cAfnfu6FugsmR1+M
+        2bnTpmMDAgMBAAECggEAJWF9ceOC9LGGdkQHZSXpYKV8cyVn4aDq9OzNCzzoehMl
+        YVeyDvxZ54vIclc3HXGAVi52q/R+KEnAHlv2wncxraw6mM2anP+7v6CZcwQbX1aS
+        NhluWG/J7J816qwrUqJpYXGj+A9ABKSdsV+rKENdtYOinJL/+DlctpouDc5pw5Fa
+        +su8IIZgrEZ0KqozTvtVnOIvXqA/ZVplv925E67wLoYjKq5t0MZNk2e9gE+64Z0q
+        8BafXwTorOTKnl1/1FNmaNE5PfZipmxBZQFaeusB9qb9ZXRnvVHq0tk3XKvy9Ffj
+        Ai/BbgNbZAY0otF59fO3vaoHF7l85dGOiZY1zyZBJQKBgQDesRzRXrpihqHszDI0
+        EuCv3S99omdXEsQGsbJGI9LcQ6sR8cTSLb9bTzxKWUNglcyN2vV5MiU31TlJCICw
+        TqDb8WC8btJdEip5FvLo9GAEz1w1epgU+qMcBRVuk7nBD186/NGN6/cUs2Av5KsY
+        q/hIB+2fbBE0ii9tUzejMb24PQKBgQC14Bcj8M34n42zcLnU3iMgwMskHQieECfg
+        ta98lXPgA8w+K80mYOaD3rDL1uoYoSgZmYnzpAVSEiaS9KZfvbo4Bo9PHz7xBuyR
+        POp65c2NHsHFnBs4oLtnHnvzFW0JI31LUY9/QudQjCPvpzMNX9OPedRWH1huAKVc
+        Vm/uFqL8PwKBgAMTPQujHD3KEChd9X+Elze2fTZl7LlmF/DjuUuAqSPDh3Q6+3XP
+        jenr4TBBpU2LJAT9dhBTYfIwbpcUl/pXS59d6PERMrR4UL/VUktnPIA0gNh4Nets
+        Pp5fb5lUTudcl/sPjLFCBepyQ6zFops3nLkZ6u0dp+sq0VbYJFeLk0wdAoGAIM+H
+        fS1hCxxFpPyOGc/lSHBfdWljd5h0iT5dpT0VBXHJ8+FVBjpu+5U+Edf4rW7NXCjt
+        0S1i5FZv7Q0Dwrvoj1jnm5+IbFUScnUp2/f/KBlHXc32vzWH+WdvdwADhqWHYgIZ
+        wByivE474W0pcZ06/mQ9IThQbK/jJRBW6v3cc2MCgYAfCgfPv0/3NQO8hyI98Iel
+        +ASy2ji7hmJtfXdrqKZFf6tKn27M//xtFNcXxt6wDwUUXM3HSSAaOCsL8AReh0bY
+        1sbiabpvn+Zm7gBjPPWFjmJcCjnF5v24ghWf7VUO4HnNvE9iUGqESxCXFYybWXvA
+        pO97f3jU4h8GyMjeQz/Lcw==
+        -----END PRIVATE KEY-----
 
   ingestion-service:
     build:
       context: ./services/ingestion-service
     ports:
       - "8000:8000"
-    volumes:
-      - ./services/ingestion-service:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   analysis-service:
@@ -54,6 +113,4 @@ services:
       context: ./services/analysis-service
     ports:
       - "8001:8000"
-    volumes:
-      - ./services/analysis-service:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

@@ -13,7 +13,7 @@ app.get('/reports', async (req, res) => {
     const snapshot = await db.collection('analysis_results').orderBy('created_at', 'desc').get();
     const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.status(200).send(reports);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).send({ error: error.message });
   }
 });
@@ -28,7 +28,7 @@ app.get('/reports/:id', async (req, res) => {
     } else {
       res.status(200).send({ id: doc.id, ...doc.data() });
     }
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).send({ error: error.message });
   }
 });
