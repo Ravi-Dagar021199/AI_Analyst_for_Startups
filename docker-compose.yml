@@ -4,7 +4,7 @@ services:
     build:
       context: ./web
     ports:
-      - "5173:5173"
+      - "5173:5000"
     volumes:
       - ./web:/app
       - /app/node_modules
