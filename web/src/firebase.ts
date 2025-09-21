@@ -21,7 +21,7 @@ try {
   auth = {
     currentUser: null,
     onAuthStateChanged: () => () => {},
-  } as Auth;
+  } as unknown as Auth;
 }
 
 export { auth };
