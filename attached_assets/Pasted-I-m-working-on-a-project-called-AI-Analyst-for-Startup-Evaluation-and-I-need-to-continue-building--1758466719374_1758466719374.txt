@@ -1,0 +1,19 @@
+I'm working on a project called "AI Analyst for Startup Evaluation" and I need to continue building it on Replit.
+
+Here is the incomplete project's architecture and technology stack:
+
+* **Backend:** Google Cloud Platform (GCP), with services like Vertex AI for model training and deployment, Cloud Storage for data lakes, and Cloud Functions for event-driven processing.
+* **AI Models:** The solution uses a multi-agent AI architecture with agents for data collection, analysis, scheduling, voice interaction, and refinement. It relies on Generative AI models, specifically Gemini, for document summarization, report generation, and conversational queries. Vertex AI is used for model training and deployment.
+* **Frontend:** A modern web application framework like React, Vue, or Angular for the user interface.
+
+Based on this information, my goal is to implement the next stage of the project on Replit. I need help with the following tasks:
+
+1.  **Set up the project environment:** Configure a Replit workspace that can handle the specified technology stack, especially the integration with Google Cloud services like Vertex AI and Gemini.
+2.  **Develop a functional prototype:** Write the necessary code to create a functional prototype of the "Data Collection Agent." This agent should be able to:
+    * Ingest text-based founder materials (e.g., a simulated pitch deck or founder update) provided by the user.
+    * Use a generative AI model (like Gemini) to process and summarize this input.
+    * Store the summarized data in a structured format, simulating its placement in a data lake.
+3.  **Create a basic frontend:** Build a simple web interface that allows a user to input the text and view the summarized output. This should be a single-page application that demonstrates the agent's functionality.
+4.  **Provide a clear plan:** Outline the next steps for integrating other agents (Data Analysis, Refinement) and building out the full platform, including the dashboard and XAI features, as described in the project documents.
+
+Please provide the code for the Replit project, including the backend logic for the Data Collection Agent and the basic frontend interface, along with a high-level plan for future development.
