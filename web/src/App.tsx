@@ -28,7 +28,7 @@ function App() {
         <Routes>
           <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
           <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
-          <Route path="/" element={user ? <Layout /> : <Navigate to="/login" />}>
+          <Route path="/" element={<Layout />}>
             <Route index element={<DashboardPage />} />
             <Route path="upload" element={<UploadPage />} />
             <Route path="dashboard" element={<DashboardPage />} />

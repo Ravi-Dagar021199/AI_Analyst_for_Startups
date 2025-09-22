@@ -43,10 +43,25 @@ export default function LoginPage() {
           sx={{ 
             py: 1.5,
             fontSize: '1.1rem',
-            textTransform: 'none'
+            textTransform: 'none',
+            mb: 2
           }}
         >
           {loading ? 'Signing in...' : '🔐 Continue with Google'}
+        </Button>
+
+        <Button
+          fullWidth
+          variant="outlined"
+          size="large"
+          onClick={() => navigate('/upload')}
+          sx={{ 
+            py: 1.5,
+            fontSize: '1.1rem',
+            textTransform: 'none'
+          }}
+        >
+          🚀 Try Demo Mode
         </Button>
         
         {error && (
