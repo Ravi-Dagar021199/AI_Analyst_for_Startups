@@ -49,8 +49,8 @@ outputType = "console"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "cd web && npm run preview -- --host 0.0.0.0 --port 5000"]
-build = ["npm", "run", "build"]
+run = ["bash", "-c", "cd web && npm run build && cd ../services/ingestion-service && uvicorn app.main:app --host=0.0.0.0 --port=5000"]
+build = ["bash", "-c", "cd web && npm run build"]
 
 [[ports]]
 localPort = 5000
@@ -59,3 +59,7 @@ externalPort = 80
 [[ports]]
 localPort = 8000
 externalPort = 8000
+
+[[ports]]
+localPort = 35453
+externalPort = 3000

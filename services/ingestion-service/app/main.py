@@ -11,6 +11,9 @@ from sqlalchemy.orm import Session
 
 # Import our Gemini client and database
 from gemini_client import analyze_startup_materials
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from database import get_db, create_tables, save_analysis, get_analysis_by_id, get_all_analyses
 
 load_dotenv()

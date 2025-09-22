@@ -1,76 +1,64 @@
-import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
-import { Container, Box, TextField, Button, Typography, Alert } from '@mui/material';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Box, Button, Typography, Alert, Paper, Divider } from '@mui/material';
+import { useAuth } from '../auth/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const handleGoogleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err: any) {
-      setError(err.message);
+      setLoading(true);
+      setError('');
+      await signInWithGoogle();
+      navigate('/upload'); // Redirect to main app after login
+    } catch (error: any) {
+      setError('Failed to sign in. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Sign In
+    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 8, p: 3 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom align="center" color="primary">
+          Welcome Back
         </Typography>
-        <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Sign In
-          </Button>
-          <Link to="/register">
-            {"Don't have an account? Sign Up"}
-          </Link>
-        </Box>
-      </Box>
-    </Container>
+        <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
+          Sign in to your AI Startup Analyst account
+        </Typography>
+        
+        <Divider sx={{ mb: 3 }} />
+        
+        <Button
+          fullWidth
+          variant="contained"
+          size="large"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          sx={{ 
+            py: 1.5,
+            fontSize: '1.1rem',
+            textTransform: 'none'
+          }}
+        >
+          {loading ? 'Signing in...' : '🔐 Continue with Google'}
+        </Button>
+        
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 3 }}>
+          Secure authentication powered by Firebase
+        </Typography>
+      </Paper>
+    </Box>
   );
 }
