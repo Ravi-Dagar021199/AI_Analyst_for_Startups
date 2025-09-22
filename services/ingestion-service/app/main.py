@@ -2,16 +2,25 @@ import os
 import json
 import uuid
 from datetime import datetime
-from typing import Dict, Any
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from typing import Dict, Any, Optional
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
 
-# Import our Gemini client
+# Import our Gemini client and database
 from gemini_client import analyze_startup_materials
+from database import get_db, create_tables, save_analysis, get_analysis_by_id, get_all_analyses
 
 load_dotenv()
+
+# Create database tables on startup
+try:
+    create_tables()
+    print("Database tables created successfully")
+except Exception as e:
+    print(f"Database initialization error: {e}")
 
 app = FastAPI(title="AI Startup Analyst - Data Collection Service")
 
@@ -24,8 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Simple in-memory storage for demo (in production, use proper database)
-analysis_storage: Dict[str, Any] = {}
+# Production PostgreSQL database storage enabled
 
 # Request/Response models
 class TextIngestionRequest(BaseModel):
@@ -41,10 +49,10 @@ class AnalysisResponse(BaseModel):
     metadata: Dict[str, str]
 
 @app.post("/ingest-text/", response_model=AnalysisResponse)
-async def ingest_text(request: TextIngestionRequest):
+async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_db)):
     """
     Data Collection Agent: Ingest text-based founder materials and analyze using Gemini AI.
-    This implements the core functionality described in the project requirements.
+    Production-ready with PostgreSQL persistence.
     """
     try:
         # Generate unique analysis ID
@@ -53,22 +61,39 @@ async def ingest_text(request: TextIngestionRequest):
         # Process text with Gemini AI
         analysis_result = analyze_startup_materials(request.text)
         
-        # Create analysis record
-        analysis_record = {
-            "analysis_id": analysis_id,
-            "status": "completed",
-            "created_at": datetime.utcnow().isoformat(),
-            "analysis": analysis_result.dict(),
-            "metadata": {
-                "title": request.title,
-                "source": request.source,
-                "text_length": str(len(request.text)),
-                "processed_by": "gemini-2.5-pro"
-            }
+        # Prepare data for database storage
+        db_data = {
+            "id": analysis_id,
+            "title": request.title,
+            "source": request.source,
+            "text_content": request.text,
+            "founder_profile": analysis_result.founder_profile.dict(),
+            "market_opportunity": analysis_result.market_opportunity.dict(),
+            "unique_differentiator": analysis_result.unique_differentiator.dict(),
+            "business_metrics": analysis_result.business_metrics.dict(),
+            "overall_score": analysis_result.overall_score,
+            "key_insights": analysis_result.key_insights,
+            "risk_flags": analysis_result.risk_flags,
+            "processed_by": "gemini-2.5-flash",
+            "status": "completed"
         }
         
-        # Store in memory (in production, use proper database)
-        analysis_storage[analysis_id] = analysis_record
+        # Save to PostgreSQL database
+        db_analysis = save_analysis(db, db_data)
+        
+        # Format response
+        analysis_record = {
+            "analysis_id": db_analysis.id,
+            "status": db_analysis.status,
+            "created_at": db_analysis.created_at.isoformat(),
+            "analysis": analysis_result.dict(),
+            "metadata": {
+                "title": db_analysis.title,
+                "source": db_analysis.source,
+                "text_length": str(len(request.text)),
+                "processed_by": db_analysis.processed_by
+            }
+        }
         
         return AnalysisResponse(**analysis_record)
         
@@ -76,36 +101,72 @@ async def ingest_text(request: TextIngestionRequest):
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.get("/analysis/{analysis_id}")
-async def get_analysis(analysis_id: str):
+async def get_analysis(analysis_id: str, db: Session = Depends(get_db)):
     """
-    Retrieve a specific analysis by ID.
+    Retrieve a specific analysis by ID from PostgreSQL database.
     """
-    if analysis_id not in analysis_storage:
+    db_analysis = get_analysis_by_id(db, analysis_id)
+    if not db_analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
     
-    return analysis_storage[analysis_id]
+    # Format response
+    return {
+        "analysis_id": db_analysis.id,
+        "status": db_analysis.status,
+        "created_at": db_analysis.created_at.isoformat(),
+        "analysis": {
+            "founder_profile": db_analysis.founder_profile,
+            "market_opportunity": db_analysis.market_opportunity,
+            "unique_differentiator": db_analysis.unique_differentiator,
+            "business_metrics": db_analysis.business_metrics,
+            "overall_score": db_analysis.overall_score,
+            "key_insights": db_analysis.key_insights,
+            "risk_flags": db_analysis.risk_flags
+        },
+        "metadata": {
+            "title": db_analysis.title,
+            "source": db_analysis.source,
+            "processed_by": db_analysis.processed_by
+        }
+    }
 
 @app.get("/analyses/")
-async def list_analyses():
+async def list_analyses(db: Session = Depends(get_db), limit: int = 50):
     """
-    List all analyses (for development/demo purposes).
+    List all analyses from PostgreSQL database.
     """
+    db_analyses = get_all_analyses(db, limit)
+    
+    analyses = []
+    for db_analysis in db_analyses:
+        analyses.append({
+            "analysis_id": db_analysis.id,
+            "status": db_analysis.status,
+            "created_at": db_analysis.created_at.isoformat(),
+            "title": db_analysis.title,
+            "overall_score": db_analysis.overall_score
+        })
+    
     return {
-        "total": len(analysis_storage),
-        "analyses": list(analysis_storage.values())
+        "total": len(analyses),
+        "analyses": analyses
     }
 
 @app.get("/")
 def read_root():
     return {
         "message": "AI Startup Analyst - Data Collection Agent",
-        "description": "Ingests founder materials and generates structured investment insights using Gemini AI",
+        "description": "Production-ready platform for startup analysis using Gemini AI and PostgreSQL",
         "endpoints": {
-            "POST /ingest-text/": "Analyze startup materials",
+            "POST /ingest-text/": "Analyze startup materials with AI",
             "GET /analysis/{id}": "Retrieve specific analysis",
-            "GET /analyses/": "List all analyses"
+            "GET /analyses/": "List all analyses",
+            "GET /health": "Health check endpoint"
         },
-        "status": "running"
+        "version": "1.0.0",
+        "database": "PostgreSQL",
+        "ai_model": "Gemini 2.5 Flash",
+        "status": "production-ready"
     }
 
 @app.get("/health")
