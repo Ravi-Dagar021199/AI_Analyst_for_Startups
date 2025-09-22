@@ -15,7 +15,18 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is required")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    connect_args={
+        "sslmode": "prefer",
+        "connect_timeout": 60,
+        "application_name": "ai_startup_analyst"
+    }
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -82,9 +93,26 @@ def get_all_analyses(db, limit: int = 100):
 
 
 def save_analysis(db, analysis_data: dict):
-    """Save analysis to database."""
-    db_analysis = StartupAnalysisDB(**analysis_data)
-    db.add(db_analysis)
-    db.commit()
-    db.refresh(db_analysis)
-    return db_analysis
+    """Save analysis to database with retry logic."""
+    try:
+        db_analysis = StartupAnalysisDB(**analysis_data)
+        db.add(db_analysis)
+        db.commit()
+        db.refresh(db_analysis)
+        return db_analysis
+    except Exception as e:
+        db.rollback()
+        # Retry once with a fresh connection
+        try:
+            db.close()
+            db = SessionLocal()
+            db_analysis = StartupAnalysisDB(**analysis_data)
+            db.add(db_analysis)
+            db.commit()
+            db.refresh(db_analysis)
+            return db_analysis
+        except Exception as retry_error:
+            db.rollback()
+            raise retry_error
+        finally:
+            db.close()
