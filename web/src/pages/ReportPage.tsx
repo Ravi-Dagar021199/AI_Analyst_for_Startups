@@ -37,19 +37,8 @@ export default function ReportPage() {
       try {
         setLoading(true);
         setError('');
-        // Use the correct API base URL for our backend
-        const currentHost = window.location.hostname;
-        let API_BASE;
-        
-        if (currentHost.includes('replit.dev')) {
-          // In Replit environment, replace port in domain
-          API_BASE = `https://${currentHost.replace('-5000-', '-8000-')}`;
-        } else {
-          // In local development
-          API_BASE = 'http://localhost:8000';
-        }
-        
-        const response = await axios.get(`${API_BASE}/analysis/${id}`);
+        // Use the backend API via proxy or direct domain
+        const response = await axios.get(`/api/analysis/${id}`);
         setAnalysis(response.data);
       } catch (error: any) {
         console.error('Error fetching analysis:', error);
