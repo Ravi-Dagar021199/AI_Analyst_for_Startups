@@ -4,9 +4,10 @@ import axios from 'axios';
 import { List, ListItem, ListItemText, Typography, Paper } from '@mui/material';
 
 interface Report {
-  id: string;
-  file_name: string;
-  created_at: { _seconds: number };
+  analysis_id: string;
+  title: string;
+  created_at: string;
+  overall_score: number;
 }
 
 export default function DashboardPage() {
@@ -15,8 +16,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await axios.get('http://localhost:3002/reports');
-        setReports(response.data);
+        // Use the correct API base URL for our backend
+        const API_BASE = `https://${window.location.hostname.replace('-5000-', '-8000-')}`;
+        const response = await axios.get(`${API_BASE}/analyses/`);
+        setReports(response.data.analyses || []);
       } catch (error) {
         console.error('Error fetching reports:', error);
       }
@@ -34,10 +37,10 @@ export default function DashboardPage() {
           <Typography>No reports found. Upload a document to get started.</Typography>
         ) : (
           reports.map(report => (
-            <ListItem key={report.id} component={RouterLink} to={`/report/${report.id}`}>
+            <ListItem key={report.analysis_id} component={RouterLink} to={`/report/${report.analysis_id}`}>
               <ListItemText 
-                primary={report.file_name} 
-                secondary={`Analyzed on: ${new Date(report.created_at._seconds * 1000).toLocaleString()}`}
+                primary={report.title} 
+                secondary={`Score: ${report.overall_score}/10 • Analyzed: ${new Date(report.created_at).toLocaleString()}`}
               />
             </ListItem>
           ))
