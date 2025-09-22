@@ -3,9 +3,10 @@ import json
 import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import io
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
@@ -70,10 +71,10 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
             "title": request.title,
             "source": request.source,
             "text_content": request.text,
-            "founder_profile": analysis_result.founder_profile.dict(),
-            "market_opportunity": analysis_result.market_opportunity.dict(),
-            "unique_differentiator": analysis_result.unique_differentiator.dict(),
-            "business_metrics": analysis_result.business_metrics.dict(),
+            "founder_profile": analysis_result.founder_profile if isinstance(analysis_result.founder_profile, dict) else analysis_result.founder_profile.dict(),
+            "market_opportunity": analysis_result.market_opportunity if isinstance(analysis_result.market_opportunity, dict) else analysis_result.market_opportunity.dict(),
+            "unique_differentiator": analysis_result.unique_differentiator if isinstance(analysis_result.unique_differentiator, dict) else analysis_result.unique_differentiator.dict(),
+            "business_metrics": analysis_result.business_metrics if isinstance(analysis_result.business_metrics, dict) else analysis_result.business_metrics.dict(),
             "overall_score": analysis_result.overall_score,
             "key_insights": analysis_result.key_insights,
             "risk_flags": analysis_result.risk_flags,
@@ -171,6 +172,81 @@ def read_root():
         "ai_model": "Gemini 2.5 Flash",
         "status": "production-ready"
     }
+
+@app.post("/ingest-file/", response_model=AnalysisResponse)
+async def ingest_file(
+    file: UploadFile = File(...),
+    title: str = Form(None),
+    source: str = Form("file_upload"),
+    db: Session = Depends(get_db)
+):
+    """
+    Data Collection Agent: Ingest file-based founder materials and analyze using Gemini AI.
+    Supports PDF, Word documents, and text files.
+    """
+    try:
+        # Generate unique analysis ID
+        analysis_id = str(uuid.uuid4())
+        
+        # Extract text from file based on type
+        text_content = ""
+        file_content = await file.read()
+        
+        if file.filename.endswith(('.txt', '.md')):
+            # Extract text from text/markdown file
+            text_content = file_content.decode('utf-8')
+        elif file.filename.endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="PDF support coming soon. Please use text files for now.")
+        elif file.filename.endswith(('.doc', '.docx')):
+            raise HTTPException(status_code=400, detail="Word document support coming soon. Please use text files for now.")
+        else:
+            raise HTTPException(status_code=400, detail="Currently supports text (.txt) and markdown (.md) files only.")
+        
+        if not text_content.strip():
+            raise HTTPException(status_code=400, detail="No text content found in the uploaded file.")
+        
+        # Process text with Gemini AI
+        analysis_result = analyze_startup_materials(text_content)
+        
+        # Prepare data for database storage
+        db_data = {
+            "id": analysis_id,
+            "title": title or file.filename,
+            "source": source,
+            "text_content": text_content,
+            "founder_profile": analysis_result.founder_profile if isinstance(analysis_result.founder_profile, dict) else analysis_result.founder_profile.dict(),
+            "market_opportunity": analysis_result.market_opportunity if isinstance(analysis_result.market_opportunity, dict) else analysis_result.market_opportunity.dict(),
+            "unique_differentiator": analysis_result.unique_differentiator if isinstance(analysis_result.unique_differentiator, dict) else analysis_result.unique_differentiator.dict(),
+            "business_metrics": analysis_result.business_metrics if isinstance(analysis_result.business_metrics, dict) else analysis_result.business_metrics.dict(),
+            "overall_score": analysis_result.overall_score,
+            "key_insights": analysis_result.key_insights,
+            "risk_flags": analysis_result.risk_flags,
+            "processed_by": "gemini-2.5-flash",
+            "status": "completed"
+        }
+        
+        # Save to PostgreSQL database
+        db_analysis = save_analysis(db, db_data)
+        
+        # Format response
+        analysis_record = {
+            "analysis_id": db_analysis.id,
+            "status": db_analysis.status,
+            "created_at": db_analysis.created_at.isoformat(),
+            "analysis": analysis_result.dict(),
+            "metadata": {
+                "title": db_analysis.title,
+                "source": db_analysis.source,
+                "text_length": str(len(text_content)),
+                "processed_by": db_analysis.processed_by,
+                "file_name": file.filename
+            }
+        }
+        
+        return AnalysisResponse(**analysis_record)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File analysis failed: {str(e)}")
 
 @app.get("/health")
 def health_check():

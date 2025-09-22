@@ -30,6 +30,7 @@ export default function UploadPage() {
   const [tabValue, setTabValue] = useState(0);
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -58,6 +59,37 @@ export default function UploadPage() {
     } catch (error: any) {
       console.error('Error analyzing text:', error);
       setErrorMessage(error.response?.data?.detail || 'Analysis failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileAnalysis = async () => {
+    if (!file) {
+      setErrorMessage('Please select a file to analyze.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
+    setAnalysis(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', title || file.name);
+      formData.append('source', 'file_upload');
+
+      const response = await axios.post(`${API_BASE}/ingest-file/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      setAnalysis(response.data);
+    } catch (error: any) {
+      console.error('Error analyzing file:', error);
+      setErrorMessage(error.response?.data?.detail || 'File analysis failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -199,6 +231,7 @@ export default function UploadPage() {
 
       <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
         <Tab label="Text Analysis" />
+        <Tab label="File Upload" />
       </Tabs>
 
       {tabValue === 0 && (
@@ -232,6 +265,55 @@ export default function UploadPage() {
               sx={{ minWidth: 200 }}
             >
               {loading ? <CircularProgress size={24} /> : 'Analyze with AI'}
+            </Button>
+            {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
+          </CardContent>
+        </Card>
+      )}
+
+      {tabValue === 1 && (
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Upload Document File
+            </Typography>
+            <TextField
+              fullWidth
+              label="Document Title (optional)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              sx={{ mb: 2 }}
+              placeholder="e.g., EcoTech Pitch Deck, Series A Presentation"
+            />
+            <Box sx={{ mb: 3 }}>
+              <input
+                accept=".pdf,.doc,.docx,.txt,.md"
+                style={{ display: 'none' }}
+                id="file-upload"
+                type="file"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+              <label htmlFor="file-upload">
+                <Button variant="outlined" component="span" sx={{ mr: 2 }}>
+                  📁 Choose File
+                </Button>
+              </label>
+              {file && (
+                <Typography variant="body2" component="span">
+                  Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                </Typography>
+              )}
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Supported formats: PDF, Word (.doc/.docx), Text (.txt), Markdown (.md)
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={handleFileAnalysis}
+              disabled={loading || !file}
+              sx={{ minWidth: 200 }}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Analyze File with AI'}
             </Button>
             {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
           </CardContent>
