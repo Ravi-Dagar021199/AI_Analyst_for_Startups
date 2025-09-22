@@ -17,7 +17,7 @@ export default function DashboardPage() {
     const fetchReports = async () => {
       try {
         // Use the correct API base URL for our backend
-        const API_BASE = `https://${window.location.hostname.replace('-5000-', '-8000-')}`;
+        const API_BASE = `https://${window.location.hostname}:8000`;
         const response = await axios.get(`${API_BASE}/analyses/`);
         setReports(response.data.analyses || []);
       } catch (error) {
