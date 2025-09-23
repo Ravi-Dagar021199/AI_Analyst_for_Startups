@@ -231,55 +231,85 @@ async def ingest_file(
             # Extract text from text/markdown file
             text_content = file_content.decode('utf-8')
         elif file.filename and file.filename.endswith('.pdf'):
-            # Extract text from PDF file
+            # Extract text from PDF file - handle binary data properly
             try:
                 import io
-                # Try using basic PDF text extraction first
+                import re
+                
+                print(f"📄 Processing PDF file: {file.filename} ({len(file_content)} bytes)")
+                
+                # Primary approach: Use PyPDF2 for reliable text extraction
+                text_content = ""
                 try:
-                    # Simple PDF text extraction (works for most text PDFs)
-                    text_content = file_content.decode('latin-1', errors='ignore')
-                    # Clean up the text - remove control characters and keep only readable text
-                    import re
-                    # Look for text between common PDF text markers
-                    text_matches = re.findall(r'\((.*?)\)', text_content)
-                    if text_matches:
-                        text_content = ' '.join(text_matches)
-                    else:
-                        # Fallback: extract printable characters
-                        text_content = ''.join(char for char in text_content if char.isprintable())
+                    import PyPDF2
+                    pdf_file = io.BytesIO(file_content)
+                    pdf_reader = PyPDF2.PdfReader(pdf_file)
                     
-                    # If still no meaningful content, try PyPDF2
-                    if not text_content.strip() or len(text_content.strip()) < 50:
-                        raise ValueError("No text extracted with simple method")
-                        
-                except Exception:
-                    # Fallback to PyPDF2 if available
-                    try:
-                        import PyPDF2
-                        pdf_file = io.BytesIO(file_content)
-                        pdf_reader = PyPDF2.PdfReader(pdf_file)
-                        text_content = ""
-                        
-                        print(f"📄 Processing PDF with {len(pdf_reader.pages)} pages...")
-                        
-                        for page_num, page in enumerate(pdf_reader.pages):
+                    print(f"📄 PDF has {len(pdf_reader.pages)} pages")
+                    
+                    for page_num, page in enumerate(pdf_reader.pages):
+                        try:
                             page_text = page.extract_text()
-                            text_content += page_text + "\n"
-                            print(f"  ✓ Extracted {len(page_text)} characters from page {page_num + 1}")
+                            if page_text:
+                                # Clean the text - remove null bytes and control characters
+                                page_text = page_text.replace('\x00', '').replace('\ufeff', '')
+                                # Remove excessive whitespace but keep structure
+                                page_text = re.sub(r'\s+', ' ', page_text).strip()
+                                text_content += page_text + "\n"
+                                print(f"  ✓ Page {page_num + 1}: {len(page_text)} characters")
+                        except Exception as page_error:
+                            print(f"  ⚠️  Page {page_num + 1}: Error extracting text - {page_error}")
+                            continue
                             
-                        print(f"✅ Total extracted: {len(text_content)} characters")
+                    print(f"✅ PyPDF2 extraction complete: {len(text_content)} total characters")
+                    
+                except ImportError:
+                    print("⚠️  PyPDF2 not available, trying alternative extraction...")
+                    # Alternative approach: Extract text from PDF binary data
+                    try:
+                        # Decode binary content safely, removing null bytes
+                        raw_text = file_content.replace(b'\x00', b'').decode('latin-1', errors='ignore')
                         
-                    except ImportError:
-                        raise HTTPException(status_code=400, detail="PDF processing library not available. Please convert your PDF to text or try a different file format.")
-                    except Exception as pypdf_error:
-                        print(f"PyPDF2 extraction failed: {str(pypdf_error)}")
+                        # Extract text between PDF text markers
+                        text_patterns = [
+                            r'BT\s*.*?\s*ET',  # Text blocks
+                            r'\((.*?)\)',      # Text in parentheses
+                            r'Tj\s*(.*?)\s*Tj', # Text operators
+                        ]
+                        
+                        extracted_parts = []
+                        for pattern in text_patterns:
+                            matches = re.findall(pattern, raw_text, re.DOTALL)
+                            extracted_parts.extend(matches)
+                        
+                        if extracted_parts:
+                            # Clean and join extracted text
+                            text_content = ' '.join(extracted_parts)
+                            text_content = re.sub(r'[^\w\s\.,;:!?()-]', ' ', text_content)
+                            text_content = re.sub(r'\s+', ' ', text_content).strip()
+                            print(f"✅ Alternative extraction: {len(text_content)} characters")
+                        
+                    except Exception as alt_error:
+                        print(f"Alternative extraction failed: {alt_error}")
+                
+                # Final fallback: Extract only printable ASCII characters
+                if not text_content.strip():
+                    print("🔧 Trying fallback extraction...")
+                    try:
+                        # Remove null bytes and extract printable characters
+                        safe_content = file_content.replace(b'\x00', b'').decode('ascii', errors='ignore')
+                        text_content = ''.join(char for char in safe_content if char.isprintable() and ord(char) > 31)
+                        text_content = re.sub(r'\s+', ' ', text_content).strip()
+                        print(f"✅ Fallback extraction: {len(text_content)} characters")
+                    except Exception as fallback_error:
+                        print(f"Fallback extraction failed: {fallback_error}")
                         text_content = ""
                         
             except Exception as pdf_error:
-                print(f"PDF processing error: {str(pdf_error)}")
-                # More informative error message
-                error_msg = f"Failed to extract text from PDF: {str(pdf_error)}. "
-                error_msg += "This might be a scanned PDF or image-based document. Please ensure your PDF contains selectable text, or try converting it to a text-based PDF first."
+                print(f"❌ PDF processing error: {str(pdf_error)}")
+                error_msg = f"Failed to process PDF file. "
+                error_msg += "This might be a heavily encrypted, corrupted, or image-only PDF. "
+                error_msg += "Please try: (1) saving as a new PDF, (2) converting to text format, or (3) using a different PDF viewer to re-export the file."
                 raise HTTPException(status_code=400, detail=error_msg)
         elif file.filename and file.filename.endswith(('.doc', '.docx')):
             # Extract text from Word document
@@ -298,9 +328,19 @@ async def ingest_file(
         else:
             raise HTTPException(status_code=400, detail="Supports PDF (.pdf), Word (.doc, .docx), text (.txt) and markdown (.md) files.")
         
-        # Debug: Print extracted content info
-        print(f"📝 Extracted text length: {len(text_content)} characters")
-        print(f"📝 First 200 chars: {text_content[:200]}")
+        # Clean the final text content to remove any remaining problematic characters
+        if text_content:
+            # Remove null bytes and other problematic characters
+            text_content = text_content.replace('\x00', '').replace('\ufeff', '')
+            # Remove non-printable characters except common whitespace
+            import re
+            text_content = re.sub(r'[^\x20-\x7E\n\r\t]', ' ', text_content)
+            # Clean up excessive whitespace
+            text_content = re.sub(r'\s+', ' ', text_content).strip()
+        
+        # Debug: Print cleaned content info  
+        print(f"📝 Cleaned text length: {len(text_content)} characters")
+        print(f"📝 First 200 chars: {repr(text_content[:200])}")
         
         if not text_content.strip():
             error_msg = "No readable text content found in the uploaded file. "
