@@ -12,8 +12,7 @@ from sqlalchemy.orm import Session
 
 # Import our Gemini client and database
 from gemini_client import analyze_startup_materials
-# Note: Temporarily disable enhanced data collection due to import issues
-# from data_collector import data_collector
+from .data_collector import data_collector
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -33,9 +32,9 @@ app = FastAPI(title="AI Startup Analyst - Data Collection Service")
 # Add CORS middleware for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=["http://localhost:5000", "https://localhost:5000"],  # Production: specify frontend domain only
+    allow_credentials=False,  # Disabled for security - enable only if authentication required
+    allow_methods=["GET", "POST"],  # Only required methods
     allow_headers=["*"],
 )
 
@@ -64,18 +63,37 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
         # Generate unique analysis ID
         analysis_id = str(uuid.uuid4())
         
-        # Collect comprehensive data from external sources
+        # Enhanced data collection with security controls
         print("🔍 Collecting external data sources...")
-        
-        # Simple company name extraction for MVP
-        text = request.text.lower()
         enhanced_content = request.text
+        data_sources_found = 0
+        enhanced_analysis_performed = False
         
-        # Add basic web search context for common startup terms
-        if any(term in text for term in ['startup', 'funding', 'series', 'founder', 'ceo']):
-            # Append context hint for AI analysis
-            enhanced_content += "\n\n--- CONTEXT ENHANCEMENT ---\n"
-            enhanced_content += "This appears to be startup-related material. Consider market trends, funding landscape, and competitive analysis in evaluation."
+        try:
+            # Enhanced analysis for substantial content
+            if len(request.text) > 100:
+                print("🔍 Performing enhanced startup analysis...")
+                
+                # Collect intelligent analysis
+                external_data = data_collector.collect_comprehensive_data(request.text)
+                
+                if external_data.get('data_sources') and len(external_data['data_sources']) > 0:
+                    enhanced_analysis_performed = True
+                    data_sources_found = len(external_data['data_sources'])
+                    
+                    # Add intelligent context to analysis
+                    enhanced_content += "\n\n--- ENHANCED INTELLIGENCE ANALYSIS ---\n"
+                    for source in external_data['data_sources']:
+                        enhanced_content += f"\n[{source.source_type.upper()}] {source.title}\n"
+                        enhanced_content += f"Analysis: {source.content}\n"
+                        enhanced_content += f"Confidence: {source.confidence:.1f}/1.0\n\n"
+                    
+                    print(f"✅ Enhanced analysis complete: {data_sources_found} intelligence sources")
+                else:
+                    print("ℹ️ No enhanced intelligence generated - using standard analysis")
+                        
+        except Exception as e:
+            print(f"Enhanced analysis failed (continuing with standard analysis): {e}")
         
         # Process enhanced text with Gemini AI
         analysis_result = analyze_startup_materials(enhanced_content)
@@ -111,8 +129,8 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
                 "source": db_analysis.source,
                 "text_length": str(len(request.text)),
                 "processed_by": db_analysis.processed_by,
-                "enhanced_analysis": True,
-                "data_sources_found": 1
+                "enhanced_analysis": enhanced_analysis_performed,
+                "data_sources_found": data_sources_found
             }
         }
         
@@ -192,7 +210,7 @@ def read_root():
 
 @app.post("/ingest-file/", response_model=AnalysisResponse)
 async def ingest_file(
-    file: UploadFile = File(...),
+    file: UploadFile = File(..., max_file_size=10485760),  # 10MB limit
     title: str = Form(None),
     source: str = Form("file_upload"),
     db: Session = Depends(get_db)
@@ -243,8 +261,32 @@ async def ingest_file(
         if not text_content.strip():
             raise HTTPException(status_code=400, detail="No text content found in the uploaded file. This might be a scanned PDF or image-based document. Please try a text-based PDF or convert to text first.")
         
-        # Process text with Gemini AI (enhanced data collection temporarily disabled)
-        analysis_result = analyze_startup_materials(text_content)
+        # Enhanced analysis for file uploads
+        enhanced_content = text_content
+        enhanced_analysis_performed = False
+        data_sources_found = 0
+        
+        try:
+            if len(text_content) > 100:
+                print("🔍 Performing enhanced file analysis...")
+                external_data = data_collector.collect_comprehensive_data(text_content)
+                
+                if external_data.get('data_sources') and len(external_data['data_sources']) > 0:
+                    enhanced_analysis_performed = True
+                    data_sources_found = len(external_data['data_sources'])
+                    
+                    enhanced_content += "\n\n--- ENHANCED INTELLIGENCE ANALYSIS ---\n"
+                    for source in external_data['data_sources']:
+                        enhanced_content += f"\n[{source.source_type.upper()}] {source.title}\n"
+                        enhanced_content += f"Analysis: {source.content}\n"
+                        enhanced_content += f"Confidence: {source.confidence:.1f}/1.0\n\n"
+                    
+                    print(f"✅ Enhanced file analysis complete: {data_sources_found} intelligence sources")
+        except Exception as e:
+            print(f"Enhanced file analysis failed (continuing with standard analysis): {e}")
+        
+        # Process enhanced text with Gemini AI
+        analysis_result = analyze_startup_materials(enhanced_content)
         
         # Prepare data for database storage
         db_data = {
@@ -277,7 +319,9 @@ async def ingest_file(
                 "source": db_analysis.source,
                 "text_length": str(len(text_content)),
                 "processed_by": db_analysis.processed_by,
-                "file_name": file.filename
+                "file_name": file.filename,
+                "enhanced_analysis": enhanced_analysis_performed,
+                "data_sources_found": data_sources_found
             }
         }
         

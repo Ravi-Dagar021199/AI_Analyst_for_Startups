@@ -1,21 +1,11 @@
 """
-Enhanced Data Collection Agent
-Automatically gathers data from multiple sources including:
-- Company websites and digital footprints
-- News articles and press releases
-- Social media mentions (where possible)
-- Public company information
+Enhanced Data Collection Agent - Simplified MVP
+Provides enhanced startup analysis through intelligent content parsing and context enhancement.
+Future versions will include external data sources with proper API integrations.
 """
 
-import asyncio
-import aiohttp
-import requests
-from typing import List, Dict, Optional, Any
-from urllib.parse import urljoin, urlparse
-import trafilatura
-from bs4 import BeautifulSoup
-import json
 import re
+from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 
 @dataclass
@@ -30,13 +20,27 @@ class DataSource:
     author: Optional[str] = None
 
 class EnhancedDataCollector:
-    """Collects comprehensive data about startups from multiple sources"""
+    """Enhanced startup analysis through intelligent content parsing and context enhancement"""
     
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        })
+        self.market_keywords = {
+            'ai': ['artificial intelligence', 'machine learning', 'deep learning', 'neural network', 'AI', 'ML'],
+            'fintech': ['financial technology', 'payments', 'banking', 'cryptocurrency', 'blockchain', 'fintech'],
+            'healthtech': ['healthcare', 'medical', 'health tech', 'biotech', 'pharma', 'telemedicine'],
+            'edtech': ['education technology', 'learning', 'e-learning', 'edtech', 'educational'],
+            'saas': ['software as a service', 'SaaS', 'cloud', 'platform', 'subscription'],
+            'ecommerce': ['e-commerce', 'marketplace', 'retail', 'online shopping', 'commerce']
+        }
+        
+        self.funding_indicators = [
+            'seed funding', 'series a', 'series b', 'venture capital', 'vc funding',
+            'angel investment', 'fundraising', 'investment', 'valuation', 'pre-seed'
+        ]
+        
+        self.traction_indicators = [
+            'customers', 'users', 'revenue', 'growth', 'mrr', 'arr', 'gmv',
+            'daily active users', 'monthly active users', 'downloads', 'partnerships'
+        ]
     
     def extract_company_info(self, text_content: str) -> Dict[str, Any]:
         """Extract company name, founders, and key terms from the initial text"""
@@ -79,227 +83,160 @@ class EnhancedDataCollector:
             'business_keywords': list(set([kw.lower() for kw in business_keywords]))[:10]
         }
     
-    def search_company_website(self, company_name: str) -> Optional[DataSource]:
-        """Search for and scrape the company's official website"""
-        try:
-            # Try common website patterns
-            common_domains = [
-                f"https://www.{company_name.lower().replace(' ', '')}.com",
-                f"https://{company_name.lower().replace(' ', '')}.com",
-                f"https://www.{company_name.lower().replace(' ', '-')}.com",
-                f"https://{company_name.lower().replace(' ', '-')}.com"
-            ]
-            
-            for url in common_domains:
-                try:
-                    response = self.session.get(url, timeout=5)
-                    if response.status_code == 200:
-                        # Extract text content using trafilatura
-                        text_content = trafilatura.extract(response.text)
-                        if text_content and len(text_content) > 100:
-                            return DataSource(
-                                source_type='website',
-                                url=url,
-                                title=f"{company_name} Official Website",
-                                content=text_content[:2000],  # Limit content
-                                confidence=0.9
-                            )
-                except:
-                    continue
-                    
-        except Exception as e:
-            print(f"Error searching company website: {e}")
+    def analyze_market_segment(self, text: str) -> Dict[str, Any]:
+        """Analyze market segment and industry from text content"""
+        text_lower = text.lower()
+        market_analysis = {
+            'primary_market': 'general',
+            'market_keywords_found': [],
+            'market_confidence': 0.5
+        }
         
-        return None
+        # Check for market keywords
+        for market, keywords in self.market_keywords.items():
+            found_keywords = [kw for kw in keywords if kw.lower() in text_lower]
+            if found_keywords:
+                market_analysis['market_keywords_found'].extend(found_keywords)
+                if len(found_keywords) >= 2:  # Strong indicator
+                    market_analysis['primary_market'] = market
+                    market_analysis['market_confidence'] = 0.8
+                elif len(found_keywords) == 1:
+                    market_analysis['primary_market'] = market
+                    market_analysis['market_confidence'] = 0.6
+        
+        return market_analysis
     
-    def search_news_articles(self, company_name: str, founders: List[str]) -> List[DataSource]:
-        """Search for news articles about the company and founders"""
-        news_sources = []
+    def analyze_funding_stage(self, text: str) -> Dict[str, Any]:
+        """Analyze funding stage and investment indicators"""
+        text_lower = text.lower()
+        funding_analysis = {
+            'funding_stage': 'unknown',
+            'funding_indicators': [],
+            'funding_confidence': 0.3
+        }
         
-        try:
-            # Search terms
-            search_terms = [company_name] + founders[:2]  # Company + top 2 founders
+        # Check for funding indicators
+        found_indicators = [ind for ind in self.funding_indicators if ind in text_lower]
+        if found_indicators:
+            funding_analysis['funding_indicators'] = found_indicators
+            funding_analysis['funding_confidence'] = 0.7
             
-            for term in search_terms:
-                if not term or len(term) < 3:
-                    continue
-                    
-                # Use DuckDuckGo search (no API key required)
-                search_query = f"{term} startup funding news"
-                search_url = f"https://duckduckgo.com/html/?q={search_query}"
-                
-                try:
-                    response = self.session.get(search_url, timeout=5)
-                    if response.status_code == 200:
-                        soup = BeautifulSoup(response.text, 'html.parser')
-                        
-                        # Extract search results
-                        results = soup.find_all('a', {'class': 'result__a'})[:3]  # Top 3 results
-                        
-                        for result in results:
-                            try:
-                                title = result.get_text(strip=True)
-                                link = result.get('href')
-                                
-                                if link and 'http' in link:
-                                    # Try to extract article content
-                                    article_response = self.session.get(link, timeout=5)
-                                    if article_response.status_code == 200:
-                                        article_content = trafilatura.extract(article_response.text)
-                                        
-                                        if article_content and len(article_content) > 200:
-                                            confidence = 0.7 if company_name.lower() in article_content.lower() else 0.4
-                                            
-                                            news_sources.append(DataSource(
-                                                source_type='news',
-                                                url=link,
-                                                title=title[:100],
-                                                content=article_content[:1500],
-                                                confidence=confidence
-                                            ))
-                            except:
-                                continue
-                                
-                except Exception as e:
-                    print(f"Error searching news for {term}: {e}")
-                    continue
-                    
-        except Exception as e:
-            print(f"Error in news search: {e}")
+            # Determine likely stage
+            if any(stage in text_lower for stage in ['series b', 'series c']):
+                funding_analysis['funding_stage'] = 'growth'
+            elif any(stage in text_lower for stage in ['series a']):
+                funding_analysis['funding_stage'] = 'early'
+            elif any(stage in text_lower for stage in ['seed', 'angel']):
+                funding_analysis['funding_stage'] = 'seed'
         
-        return news_sources[:5]  # Return top 5 relevant articles
+        return funding_analysis
     
-    def search_social_media_mentions(self, company_name: str, founders: List[str]) -> List[DataSource]:
-        """Search for social media mentions and public profiles"""
-        social_sources = []
+    def analyze_traction_metrics(self, text: str) -> Dict[str, Any]:
+        """Extract and analyze traction metrics"""
+        traction_analysis = {
+            'traction_indicators': [],
+            'metrics_found': [],
+            'traction_confidence': 0.4
+        }
         
-        try:
-            # Search for LinkedIn company pages and founder profiles
-            search_terms = [company_name] + founders[:2]
-            
-            for term in search_terms:
-                if not term or len(term) < 3:
-                    continue
-                    
-                # Search LinkedIn via Google (public data only)
-                linkedin_query = f"site:linkedin.com {term}"
-                search_url = f"https://duckduckgo.com/html/?q={linkedin_query}"
-                
-                try:
-                    response = self.session.get(search_url, timeout=5)
-                    if response.status_code == 200:
-                        soup = BeautifulSoup(response.text, 'html.parser')
-                        results = soup.find_all('a', {'class': 'result__a'})[:2]  # Top 2 LinkedIn results
-                        
-                        for result in results:
-                            try:
-                                title = result.get_text(strip=True)
-                                link = result.get('href')
-                                
-                                if link and 'linkedin.com' in link:
-                                    social_sources.append(DataSource(
-                                        source_type='social_media',
-                                        url=link,
-                                        title=f"LinkedIn: {title[:80]}",
-                                        content=f"LinkedIn profile or company page for {term}",
-                                        confidence=0.6
-                                    ))
-                            except:
-                                continue
-                                
-                except Exception as e:
-                    print(f"Error searching LinkedIn for {term}: {e}")
-                    continue
-                    
-        except Exception as e:
-            print(f"Error in social media search: {e}")
+        # Look for specific metrics
+        metric_patterns = [
+            r'(\d+(?:,\d{3})*(?:\.\d+)?[kmb]?)\s*(?:users|customers|downloads)',
+            r'\$(\d+(?:,\d{3})*(?:\.\d+)?[kmb]?)\s*(?:revenue|mrr|arr)',
+            r'(\d+(?:\.\d+)?%)\s*(?:growth|conversion)'
+        ]
         
-        return social_sources[:3]  # Return top 3 social media sources
+        for pattern in metric_patterns:
+            matches = re.findall(pattern, text.lower())
+            traction_analysis['metrics_found'].extend(matches)
+        
+        # Check for traction indicators
+        found_indicators = [ind for ind in self.traction_indicators if ind in text.lower()]
+        if found_indicators:
+            traction_analysis['traction_indicators'] = found_indicators
+            traction_analysis['traction_confidence'] = 0.6
+        
+        return traction_analysis
     
-    def search_crunchbase_data(self, company_name: str) -> Optional[DataSource]:
-        """Search for Crunchbase data (public information)"""
-        try:
-            # Search Crunchbase via Google
-            crunchbase_query = f"site:crunchbase.com {company_name}"
-            search_url = f"https://duckduckgo.com/html/?q={crunchbase_query}"
-            
-            response = self.session.get(search_url, timeout=5)
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                results = soup.find_all('a', {'class': 'result__a'})[:1]  # Top result
-                
-                if results:
-                    result = results[0]
-                    title = result.get_text(strip=True)
-                    link = result.get('href')
-                    
-                    if link and 'crunchbase.com' in link:
-                        return DataSource(
-                            source_type='database',
-                            url=link,
-                            title=f"Crunchbase: {title[:80]}",
-                            content=f"Crunchbase profile for {company_name} with funding and company information",
-                            confidence=0.8
-                        )
-                        
-        except Exception as e:
-            print(f"Error searching Crunchbase: {e}")
-        
-        return None
+    # Removed external scraping functions for production security
+    # Future versions will use proper API integrations with rate limiting and security controls
     
     def collect_comprehensive_data(self, initial_text: str) -> Dict[str, Any]:
-        """Main method to collect comprehensive data from all sources"""
+        """Enhanced analysis through intelligent content parsing and context generation"""
         
         # Extract company information from initial text
         company_info = self.extract_company_info(initial_text)
         
-        collected_data = {
-            'extracted_info': company_info,
-            'data_sources': []
-        }
+        # Perform enhanced analysis
+        market_analysis = self.analyze_market_segment(initial_text)
+        funding_analysis = self.analyze_funding_stage(initial_text)
+        traction_analysis = self.analyze_traction_metrics(initial_text)
         
-        if not company_info['company_names']:
-            # If no company name found, return minimal data
-            return collected_data
-        
-        primary_company = company_info['company_names'][0]
-        founders = company_info['founder_names']
-        
-        print(f"Collecting data for: {primary_company}")
-        print(f"Founders: {founders}")
-        
-        # Collect from various sources
+        # Generate enhanced context data sources
         data_sources = []
         
-        # 1. Company website
-        website_data = self.search_company_website(primary_company)
-        if website_data:
-            data_sources.append(website_data)
+        # Create context-based data sources
+        if company_info['company_names']:
+            primary_company = company_info['company_names'][0]
+            
+            # Market context source
+            if market_analysis['market_confidence'] > 0.6:
+                market_context = f"Market Analysis: {primary_company} operates in the {market_analysis['primary_market']} sector. "
+                market_context += f"Key indicators: {', '.join(market_analysis['market_keywords_found'][:3])}"
+                
+                data_sources.append(DataSource(
+                    source_type='market_analysis',
+                    url='internal://market-intelligence',
+                    title=f"{market_analysis['primary_market'].title()} Market Context",
+                    content=market_context,
+                    confidence=market_analysis['market_confidence']
+                ))
+            
+            # Funding context source
+            if funding_analysis['funding_confidence'] > 0.6:
+                funding_context = f"Funding Analysis: Company shows indicators of {funding_analysis['funding_stage']} stage. "
+                funding_context += f"Funding signals: {', '.join(funding_analysis['funding_indicators'][:2])}"
+                
+                data_sources.append(DataSource(
+                    source_type='funding_analysis',
+                    url='internal://funding-intelligence',
+                    title=f"{funding_analysis['funding_stage'].title()} Stage Analysis",
+                    content=funding_context,
+                    confidence=funding_analysis['funding_confidence']
+                ))
+            
+            # Traction context source
+            if traction_analysis['traction_confidence'] > 0.5:
+                traction_context = f"Traction Analysis: Found metrics and indicators suggesting business traction. "
+                if traction_analysis['metrics_found']:
+                    traction_context += f"Metrics: {', '.join(traction_analysis['metrics_found'][:3])}"
+                
+                data_sources.append(DataSource(
+                    source_type='traction_analysis',
+                    url='internal://traction-intelligence',
+                    title="Business Traction Analysis",
+                    content=traction_context,
+                    confidence=traction_analysis['traction_confidence']
+                ))
         
-        # 2. News articles
-        news_data = self.search_news_articles(primary_company, founders)
-        data_sources.extend(news_data)
+        collected_data = {
+            'extracted_info': company_info,
+            'data_sources': data_sources,
+            'enhanced_analysis': {
+                'market': market_analysis,
+                'funding': funding_analysis,
+                'traction': traction_analysis
+            }
+        }
         
-        # 3. Social media mentions
-        social_data = self.search_social_media_mentions(primary_company, founders)
-        data_sources.extend(social_data)
-        
-        # 4. Crunchbase data
-        crunchbase_data = self.search_crunchbase_data(primary_company)
-        if crunchbase_data:
-            data_sources.append(crunchbase_data)
-        
-        collected_data['data_sources'] = data_sources
-        
-        # Create summary of collected data
+        # Create summary
         total_sources = len(data_sources)
-        high_confidence_sources = len([s for s in data_sources if s.confidence > 0.7])
-        
         collected_data['summary'] = {
             'total_sources_found': total_sources,
-            'high_confidence_sources': high_confidence_sources,
+            'high_confidence_sources': len([s for s in data_sources if s.confidence > 0.7]),
             'source_types': list(set([s.source_type for s in data_sources])),
-            'data_collection_success': total_sources > 0
+            'data_collection_success': total_sources > 0,
+            'enhancement_type': 'intelligent_analysis'
         }
         
         return collected_data
