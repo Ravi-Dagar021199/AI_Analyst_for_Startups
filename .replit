@@ -5,7 +5,7 @@ channel = "stable-25_05"
 
 [agent]
 expertMode = true
-integrations = ["python_gemini:1.0.0", "firebase_barebones_javascript:1.0.0"]
+integrations = ["python_gemini:1.0.0", "firebase_barebones_javascript:1.0.0", "web_scraper:1.0.0"]
 
 [workflows]
 runButton = "Project"
@@ -59,7 +59,3 @@ externalPort = 80
 [[ports]]
 localPort = 8000
 externalPort = 8000
-
-[[ports]]
-localPort = 41097
-externalPort = 3000

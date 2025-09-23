@@ -2,8 +2,9 @@ import { useState } from 'react';
 import axios from 'axios';
 import { 
   Button, Box, Typography, TextField, Alert, Card, CardContent, 
-  Tabs, Tab, CircularProgress, Chip, Divider, Grid
+  Tabs, Tab, CircularProgress, Chip, Divider
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 
 interface Analysis {
   analysis_id: string;
@@ -121,7 +122,7 @@ export default function UploadPage() {
             
             <Grid container spacing={2}>
               {/* Founder Profile */}
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom>
@@ -138,7 +139,7 @@ export default function UploadPage() {
               </Grid>
 
               {/* Market Opportunity */}
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom>
@@ -155,7 +156,7 @@ export default function UploadPage() {
               </Grid>
 
               {/* Unique Differentiator */}
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom>
@@ -172,7 +173,7 @@ export default function UploadPage() {
               </Grid>
 
               {/* Business Metrics */}
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom>

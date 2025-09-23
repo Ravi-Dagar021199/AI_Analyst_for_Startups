@@ -192,10 +192,10 @@ async def ingest_file(
         text_content = ""
         file_content = await file.read()
         
-        if file.filename.endswith(('.txt', '.md')):
+        if file.filename and file.filename.endswith(('.txt', '.md')):
             # Extract text from text/markdown file
             text_content = file_content.decode('utf-8')
-        elif file.filename.endswith('.pdf'):
+        elif file.filename and file.filename.endswith('.pdf'):
             # Extract text from PDF file
             try:
                 import PyPDF2
@@ -208,7 +208,7 @@ async def ingest_file(
                     text_content += page_text + "\n"
             except Exception as pdf_error:
                 raise HTTPException(status_code=400, detail=f"Failed to extract text from PDF: {str(pdf_error)}")
-        elif file.filename.endswith(('.doc', '.docx')):
+        elif file.filename and file.filename.endswith(('.doc', '.docx')):
             # Extract text from Word document
             try:
                 from docx import Document
