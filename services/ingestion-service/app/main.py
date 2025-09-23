@@ -196,11 +196,31 @@ async def ingest_file(
             # Extract text from text/markdown file
             text_content = file_content.decode('utf-8')
         elif file.filename.endswith('.pdf'):
-            raise HTTPException(status_code=400, detail="PDF support coming soon. Please use text files for now.")
+            # Extract text from PDF file
+            try:
+                import PyPDF2
+                import io
+                pdf_file = io.BytesIO(file_content)
+                pdf_reader = PyPDF2.PdfReader(pdf_file)
+                text_content = ""
+                for page in pdf_reader.pages:
+                    text_content += page.extract_text() + "\n"
+            except Exception as pdf_error:
+                raise HTTPException(status_code=400, detail=f"Failed to extract text from PDF: {str(pdf_error)}")
         elif file.filename.endswith(('.doc', '.docx')):
-            raise HTTPException(status_code=400, detail="Word document support coming soon. Please use text files for now.")
+            # Extract text from Word document
+            try:
+                from docx import Document
+                import io
+                doc_file = io.BytesIO(file_content)
+                doc = Document(doc_file)
+                text_content = ""
+                for paragraph in doc.paragraphs:
+                    text_content += paragraph.text + "\n"
+            except Exception as doc_error:
+                raise HTTPException(status_code=400, detail=f"Failed to extract text from Word document: {str(doc_error)}")
         else:
-            raise HTTPException(status_code=400, detail="Currently supports text (.txt) and markdown (.md) files only.")
+            raise HTTPException(status_code=400, detail="Supports PDF (.pdf), Word (.doc, .docx), text (.txt) and markdown (.md) files.")
         
         if not text_content.strip():
             raise HTTPException(status_code=400, detail="No text content found in the uploaded file.")
