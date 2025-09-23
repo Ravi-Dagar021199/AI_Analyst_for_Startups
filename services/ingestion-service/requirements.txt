@@ -9,3 +9,7 @@ alembic
 PyPDF2
 python-docx
 pymupdf
+trafilatura
+requests
+beautifulsoup4
+aiohttp

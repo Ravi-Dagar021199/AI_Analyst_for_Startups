@@ -4,7 +4,6 @@ import {
   Button, Box, Typography, TextField, Alert, Card, CardContent, 
   Tabs, Tab, CircularProgress, Chip, Divider
 } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 
 interface Analysis {
   analysis_id: string;
@@ -24,6 +23,9 @@ interface Analysis {
     source: string;
     text_length: string;
     processed_by: string;
+    file_name?: string;
+    data_sources_found?: number;
+    enhanced_analysis?: boolean;
   };
 }
 
@@ -120,75 +122,67 @@ export default function UploadPage() {
             
             <Divider sx={{ mb: 2 }} />
             
-            <Grid container spacing={2}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
               {/* Founder Profile */}
-              <Grid xs={12} md={6}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary" gutterBottom>
-                      👥 Founder Profile
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Experience:</strong> {result.founder_profile.experience}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Founder-Market Fit:</strong> {result.founder_profile.founder_market_fit}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    👥 Founder Profile
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Experience:</strong> {result.founder_profile.experience}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Founder-Market Fit:</strong> {result.founder_profile.founder_market_fit}
+                  </Typography>
+                </CardContent>
+              </Card>
 
               {/* Market Opportunity */}
-              <Grid xs={12} md={6}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary" gutterBottom>
-                      🎯 Market Opportunity
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Problem:</strong> {result.market_opportunity.problem_description}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Market Size:</strong> {result.market_opportunity.market_size}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    🎯 Market Opportunity
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Problem:</strong> {result.market_opportunity.problem_description}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Market Size:</strong> {result.market_opportunity.market_size}
+                  </Typography>
+                </CardContent>
+              </Card>
 
               {/* Unique Differentiator */}
-              <Grid xs={12} md={6}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary" gutterBottom>
-                      🚀 Unique Differentiator
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Innovation:</strong> {result.unique_differentiator.core_innovation}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Defensibility:</strong> {result.unique_differentiator.defensibility}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    🚀 Unique Differentiator
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Innovation:</strong> {result.unique_differentiator.core_innovation}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Defensibility:</strong> {result.unique_differentiator.defensibility}
+                  </Typography>
+                </CardContent>
+              </Card>
 
               {/* Business Metrics */}
-              <Grid xs={12} md={6}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary" gutterBottom>
-                      📊 Business Metrics
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Traction:</strong> {result.business_metrics.traction}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Revenue Model:</strong> {result.business_metrics.revenue_model}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    📊 Business Metrics
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Traction:</strong> {result.business_metrics.traction}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Revenue Model:</strong> {result.business_metrics.revenue_model}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
 
             <Divider sx={{ my: 3 }} />
 
