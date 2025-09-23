@@ -98,19 +98,35 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
         # Process enhanced text with Gemini AI
         analysis_result = analyze_startup_materials(enhanced_content)
         
-        # Prepare data for database storage
+        # Prepare data for database storage - ensure all objects are serializable
+        import json
+        
+        def serialize_for_db(obj):
+            """Convert any object to JSON-serializable format"""
+            if hasattr(obj, 'dict'):
+                return obj.dict()
+            elif hasattr(obj, '__dict__'):
+                # For DataSource and other custom objects
+                return {k: serialize_for_db(v) for k, v in obj.__dict__.items()}
+            elif isinstance(obj, list):
+                return [serialize_for_db(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {k: serialize_for_db(v) for k, v in obj.items()}
+            else:
+                return obj
+        
         db_data = {
             "id": analysis_id,
             "title": request.title,
             "source": request.source,
             "text_content": request.text,
-            "founder_profile": analysis_result.founder_profile if isinstance(analysis_result.founder_profile, dict) else analysis_result.founder_profile.dict(),
-            "market_opportunity": analysis_result.market_opportunity if isinstance(analysis_result.market_opportunity, dict) else analysis_result.market_opportunity.dict(),
-            "unique_differentiator": analysis_result.unique_differentiator if isinstance(analysis_result.unique_differentiator, dict) else analysis_result.unique_differentiator.dict(),
-            "business_metrics": analysis_result.business_metrics if isinstance(analysis_result.business_metrics, dict) else analysis_result.business_metrics.dict(),
+            "founder_profile": serialize_for_db(analysis_result.founder_profile),
+            "market_opportunity": serialize_for_db(analysis_result.market_opportunity),
+            "unique_differentiator": serialize_for_db(analysis_result.unique_differentiator),
+            "business_metrics": serialize_for_db(analysis_result.business_metrics),
             "overall_score": analysis_result.overall_score,
-            "key_insights": analysis_result.key_insights,
-            "risk_flags": analysis_result.risk_flags,
+            "key_insights": serialize_for_db(analysis_result.key_insights),
+            "risk_flags": serialize_for_db(analysis_result.risk_flags),
             "processed_by": "gemini-2.5-flash",
             "status": "completed"
         }
@@ -474,19 +490,35 @@ async def ingest_file(
         # Process enhanced text with Gemini AI
         analysis_result = analyze_startup_materials(enhanced_content)
         
-        # Prepare data for database storage
+        # Prepare data for database storage - ensure all objects are serializable
+        import json
+        
+        def serialize_for_db(obj):
+            """Convert any object to JSON-serializable format"""
+            if hasattr(obj, 'dict'):
+                return obj.dict()
+            elif hasattr(obj, '__dict__'):
+                # For DataSource and other custom objects
+                return {k: serialize_for_db(v) for k, v in obj.__dict__.items()}
+            elif isinstance(obj, list):
+                return [serialize_for_db(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {k: serialize_for_db(v) for k, v in obj.items()}
+            else:
+                return obj
+        
         db_data = {
             "id": analysis_id,
             "title": title or file.filename,
             "source": source,
             "text_content": text_content,
-            "founder_profile": analysis_result.founder_profile if isinstance(analysis_result.founder_profile, dict) else analysis_result.founder_profile.dict(),
-            "market_opportunity": analysis_result.market_opportunity if isinstance(analysis_result.market_opportunity, dict) else analysis_result.market_opportunity.dict(),
-            "unique_differentiator": analysis_result.unique_differentiator if isinstance(analysis_result.unique_differentiator, dict) else analysis_result.unique_differentiator.dict(),
-            "business_metrics": analysis_result.business_metrics if isinstance(analysis_result.business_metrics, dict) else analysis_result.business_metrics.dict(),
+            "founder_profile": serialize_for_db(analysis_result.founder_profile),
+            "market_opportunity": serialize_for_db(analysis_result.market_opportunity),
+            "unique_differentiator": serialize_for_db(analysis_result.unique_differentiator),
+            "business_metrics": serialize_for_db(analysis_result.business_metrics),
             "overall_score": analysis_result.overall_score,
-            "key_insights": analysis_result.key_insights,
-            "risk_flags": analysis_result.risk_flags,
+            "key_insights": serialize_for_db(analysis_result.key_insights),
+            "risk_flags": serialize_for_db(analysis_result.risk_flags),
             "processed_by": "gemini-2.5-flash",
             "status": "completed"
         }
