@@ -101,18 +101,36 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
         # Prepare data for database storage - ensure all objects are serializable
         import json
         
+        def sanitize_for_db(db_data: dict) -> dict:
+            """Sanitize database data to ensure proper types for all columns"""
+            # Ensure scalar columns are strings
+            scalar_fields = ['id', 'title', 'source', 'processed_by', 'status']
+            for field in scalar_fields:
+                if field in db_data:
+                    db_data[field] = str(db_data[field])
+            
+            # Ensure JSON columns are properly serialized
+            json_fields = ['founder_profile', 'market_opportunity', 'unique_differentiator', 
+                          'business_metrics', 'key_insights', 'risk_flags']
+            for field in json_fields:
+                if field in db_data:
+                    db_data[field] = deep_serialize(db_data[field])
+            
+            return db_data
+        
         def deep_serialize(obj):
             """Completely serialize any object to JSON-compatible format"""
             if obj is None:
                 return None
             elif hasattr(obj, 'dict') and callable(getattr(obj, 'dict')):
-                # Pydantic models
                 return deep_serialize(obj.dict())
             elif hasattr(obj, '__dict__'):
-                # DataSource objects and other classes with attributes
+                from dataclasses import asdict, is_dataclass
+                if is_dataclass(obj):
+                    return asdict(obj)
                 result = {}
                 for key, value in obj.__dict__.items():
-                    if not key.startswith('_'):  # Skip private attributes
+                    if not key.startswith('_'):
                         result[key] = deep_serialize(value)
                 return result
             elif isinstance(obj, dict):
@@ -122,7 +140,6 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
             elif isinstance(obj, (str, int, float, bool)):
                 return obj
             else:
-                # Convert any other object to string representation
                 try:
                     return str(obj)
                 except:
@@ -131,10 +148,11 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
         # Ensure analysis_result is completely serialized
         serialized_analysis = deep_serialize(analysis_result)
         
+        # FIXED: Explicitly use the original request source parameter
         db_data = {
             "id": analysis_id,
             "title": request.title,
-            "source": request.source,
+            "source": request.source,  # This is the original HTTP parameter
             "text_content": request.text,
             "founder_profile": serialized_analysis.get('founder_profile', {}),
             "market_opportunity": serialized_analysis.get('market_opportunity', {}),
@@ -146,6 +164,9 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
             "processed_by": "gemini-2.5-flash",
             "status": "completed"
         }
+        
+        # Sanitize all data before database save  
+        db_data = sanitize_for_db(db_data)
         
         # Save to PostgreSQL database
         db_analysis = save_analysis(db, db_data)
@@ -509,18 +530,36 @@ async def ingest_file(
         # Complete data serialization to handle any DataSource or complex objects
         import json
         
+        def sanitize_for_db(db_data: dict) -> dict:
+            """Sanitize database data to ensure proper types for all columns"""
+            # Ensure scalar columns are strings
+            scalar_fields = ['id', 'title', 'source', 'processed_by', 'status']
+            for field in scalar_fields:
+                if field in db_data:
+                    db_data[field] = str(db_data[field])
+            
+            # Ensure JSON columns are properly serialized
+            json_fields = ['founder_profile', 'market_opportunity', 'unique_differentiator', 
+                          'business_metrics', 'key_insights', 'risk_flags']
+            for field in json_fields:
+                if field in db_data:
+                    db_data[field] = deep_serialize(db_data[field])
+            
+            return db_data
+        
         def deep_serialize(obj):
             """Completely serialize any object to JSON-compatible format"""
             if obj is None:
                 return None
             elif hasattr(obj, 'dict') and callable(getattr(obj, 'dict')):
-                # Pydantic models
                 return deep_serialize(obj.dict())
             elif hasattr(obj, '__dict__'):
-                # DataSource objects and other classes with attributes
+                from dataclasses import asdict, is_dataclass
+                if is_dataclass(obj):
+                    return asdict(obj)
                 result = {}
                 for key, value in obj.__dict__.items():
-                    if not key.startswith('_'):  # Skip private attributes
+                    if not key.startswith('_'):
                         result[key] = deep_serialize(value)
                 return result
             elif isinstance(obj, dict):
@@ -530,7 +569,6 @@ async def ingest_file(
             elif isinstance(obj, (str, int, float, bool)):
                 return obj
             else:
-                # Convert any other object to string representation
                 try:
                     return str(obj)
                 except:
@@ -539,10 +577,11 @@ async def ingest_file(
         # Ensure analysis_result is completely serialized
         serialized_analysis = deep_serialize(analysis_result)
         
+        # FIXED: Explicitly use the original source parameter (not loop variable)
         db_data = {
             "id": analysis_id,
             "title": title or file.filename,
-            "source": source,
+            "source": source,  # This is the original HTTP parameter
             "text_content": text_content,
             "founder_profile": serialized_analysis.get('founder_profile', {}),
             "market_opportunity": serialized_analysis.get('market_opportunity', {}),
@@ -555,8 +594,8 @@ async def ingest_file(
             "status": "completed"
         }
         
-        # Final safety check: ensure no DataSource objects remain anywhere
-        print(f"🔍 Pre-save data types check: {[(k, type(v).__name__) for k, v in db_data.items()]}")
+        # Sanitize all data before database save  
+        db_data = sanitize_for_db(db_data)
         
         # Save to PostgreSQL database
         db_analysis = save_analysis(db, db_data)
