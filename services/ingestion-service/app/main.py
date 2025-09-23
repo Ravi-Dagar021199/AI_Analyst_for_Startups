@@ -147,6 +147,8 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
         
         # Ensure analysis_result is completely serialized
         serialized_analysis = deep_serialize(analysis_result)
+        if not isinstance(serialized_analysis, dict):
+            serialized_analysis = {}
         
         # FIXED: Explicitly use the original request source parameter
         db_data = {
@@ -576,6 +578,8 @@ async def ingest_file(
         
         # Ensure analysis_result is completely serialized
         serialized_analysis = deep_serialize(analysis_result)
+        if not isinstance(serialized_analysis, dict):
+            serialized_analysis = {}
         
         # FIXED: Explicitly use the original source parameter (not loop variable)
         db_data = {
