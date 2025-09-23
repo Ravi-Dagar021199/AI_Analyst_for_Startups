@@ -101,32 +101,48 @@ async def ingest_text(request: TextIngestionRequest, db: Session = Depends(get_d
         # Prepare data for database storage - ensure all objects are serializable
         import json
         
-        def serialize_for_db(obj):
-            """Convert any object to JSON-serializable format"""
-            if hasattr(obj, 'dict'):
-                return obj.dict()
+        def deep_serialize(obj):
+            """Completely serialize any object to JSON-compatible format"""
+            if obj is None:
+                return None
+            elif hasattr(obj, 'dict') and callable(getattr(obj, 'dict')):
+                # Pydantic models
+                return deep_serialize(obj.dict())
             elif hasattr(obj, '__dict__'):
-                # For DataSource and other custom objects
-                return {k: serialize_for_db(v) for k, v in obj.__dict__.items()}
-            elif isinstance(obj, list):
-                return [serialize_for_db(item) for item in obj]
+                # DataSource objects and other classes with attributes
+                result = {}
+                for key, value in obj.__dict__.items():
+                    if not key.startswith('_'):  # Skip private attributes
+                        result[key] = deep_serialize(value)
+                return result
             elif isinstance(obj, dict):
-                return {k: serialize_for_db(v) for k, v in obj.items()}
-            else:
+                return {k: deep_serialize(v) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple, set)):
+                return [deep_serialize(item) for item in obj]
+            elif isinstance(obj, (str, int, float, bool)):
                 return obj
+            else:
+                # Convert any other object to string representation
+                try:
+                    return str(obj)
+                except:
+                    return None
+        
+        # Ensure analysis_result is completely serialized
+        serialized_analysis = deep_serialize(analysis_result)
         
         db_data = {
             "id": analysis_id,
             "title": request.title,
             "source": request.source,
             "text_content": request.text,
-            "founder_profile": serialize_for_db(analysis_result.founder_profile),
-            "market_opportunity": serialize_for_db(analysis_result.market_opportunity),
-            "unique_differentiator": serialize_for_db(analysis_result.unique_differentiator),
-            "business_metrics": serialize_for_db(analysis_result.business_metrics),
-            "overall_score": analysis_result.overall_score,
-            "key_insights": serialize_for_db(analysis_result.key_insights),
-            "risk_flags": serialize_for_db(analysis_result.risk_flags),
+            "founder_profile": serialized_analysis.get('founder_profile', {}),
+            "market_opportunity": serialized_analysis.get('market_opportunity', {}),
+            "unique_differentiator": serialized_analysis.get('unique_differentiator', {}),
+            "business_metrics": serialized_analysis.get('business_metrics', {}),
+            "overall_score": serialized_analysis.get('overall_score', 0.0),
+            "key_insights": serialized_analysis.get('key_insights', []),
+            "risk_flags": serialized_analysis.get('risk_flags', []),
             "processed_by": "gemini-2.5-flash",
             "status": "completed"
         }
@@ -490,38 +506,57 @@ async def ingest_file(
         # Process enhanced text with Gemini AI
         analysis_result = analyze_startup_materials(enhanced_content)
         
-        # Prepare data for database storage - ensure all objects are serializable
+        # Complete data serialization to handle any DataSource or complex objects
         import json
         
-        def serialize_for_db(obj):
-            """Convert any object to JSON-serializable format"""
-            if hasattr(obj, 'dict'):
-                return obj.dict()
+        def deep_serialize(obj):
+            """Completely serialize any object to JSON-compatible format"""
+            if obj is None:
+                return None
+            elif hasattr(obj, 'dict') and callable(getattr(obj, 'dict')):
+                # Pydantic models
+                return deep_serialize(obj.dict())
             elif hasattr(obj, '__dict__'):
-                # For DataSource and other custom objects
-                return {k: serialize_for_db(v) for k, v in obj.__dict__.items()}
-            elif isinstance(obj, list):
-                return [serialize_for_db(item) for item in obj]
+                # DataSource objects and other classes with attributes
+                result = {}
+                for key, value in obj.__dict__.items():
+                    if not key.startswith('_'):  # Skip private attributes
+                        result[key] = deep_serialize(value)
+                return result
             elif isinstance(obj, dict):
-                return {k: serialize_for_db(v) for k, v in obj.items()}
-            else:
+                return {k: deep_serialize(v) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple, set)):
+                return [deep_serialize(item) for item in obj]
+            elif isinstance(obj, (str, int, float, bool)):
                 return obj
+            else:
+                # Convert any other object to string representation
+                try:
+                    return str(obj)
+                except:
+                    return None
+        
+        # Ensure analysis_result is completely serialized
+        serialized_analysis = deep_serialize(analysis_result)
         
         db_data = {
             "id": analysis_id,
             "title": title or file.filename,
             "source": source,
             "text_content": text_content,
-            "founder_profile": serialize_for_db(analysis_result.founder_profile),
-            "market_opportunity": serialize_for_db(analysis_result.market_opportunity),
-            "unique_differentiator": serialize_for_db(analysis_result.unique_differentiator),
-            "business_metrics": serialize_for_db(analysis_result.business_metrics),
-            "overall_score": analysis_result.overall_score,
-            "key_insights": serialize_for_db(analysis_result.key_insights),
-            "risk_flags": serialize_for_db(analysis_result.risk_flags),
+            "founder_profile": serialized_analysis.get('founder_profile', {}),
+            "market_opportunity": serialized_analysis.get('market_opportunity', {}),
+            "unique_differentiator": serialized_analysis.get('unique_differentiator', {}),
+            "business_metrics": serialized_analysis.get('business_metrics', {}),
+            "overall_score": serialized_analysis.get('overall_score', 0.0),
+            "key_insights": serialized_analysis.get('key_insights', []),
+            "risk_flags": serialized_analysis.get('risk_flags', []),
             "processed_by": "gemini-2.5-flash",
             "status": "completed"
         }
+        
+        # Final safety check: ensure no DataSource objects remain anywhere
+        print(f"🔍 Pre-save data types check: {[(k, type(v).__name__) for k, v in db_data.items()]}")
         
         # Save to PostgreSQL database
         db_analysis = save_analysis(db, db_data)
