@@ -35,8 +35,8 @@ export default function UploadPage() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Use the correct Replit domain for API calls
-  const API_BASE = `https://${window.location.hostname}:8000`;
+  // Use API proxy configuration for backend calls
+  const API_BASE = '/api';
 
   const handleTextAnalysis = async () => {
     if (!text.trim()) {

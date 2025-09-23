@@ -204,7 +204,8 @@ async def ingest_file(
                 pdf_reader = PyPDF2.PdfReader(pdf_file)
                 text_content = ""
                 for page in pdf_reader.pages:
-                    text_content += page.extract_text() + "\n"
+                    page_text = page.extract_text()
+                    text_content += page_text + "\n"
             except Exception as pdf_error:
                 raise HTTPException(status_code=400, detail=f"Failed to extract text from PDF: {str(pdf_error)}")
         elif file.filename.endswith(('.doc', '.docx')):
@@ -223,7 +224,7 @@ async def ingest_file(
             raise HTTPException(status_code=400, detail="Supports PDF (.pdf), Word (.doc, .docx), text (.txt) and markdown (.md) files.")
         
         if not text_content.strip():
-            raise HTTPException(status_code=400, detail="No text content found in the uploaded file.")
+            raise HTTPException(status_code=400, detail="No text content found in the uploaded file. This might be a scanned PDF or image-based document. Please try a text-based PDF or convert to text first.")
         
         # Process text with Gemini AI
         analysis_result = analyze_startup_materials(text_content)
