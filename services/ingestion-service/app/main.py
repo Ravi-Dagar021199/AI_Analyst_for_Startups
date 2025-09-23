@@ -233,16 +233,54 @@ async def ingest_file(
         elif file.filename and file.filename.endswith('.pdf'):
             # Extract text from PDF file
             try:
-                import PyPDF2
                 import io
-                pdf_file = io.BytesIO(file_content)
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
-                text_content = ""
-                for page in pdf_reader.pages:
-                    page_text = page.extract_text()
-                    text_content += page_text + "\n"
+                # Try using basic PDF text extraction first
+                try:
+                    # Simple PDF text extraction (works for most text PDFs)
+                    text_content = file_content.decode('latin-1', errors='ignore')
+                    # Clean up the text - remove control characters and keep only readable text
+                    import re
+                    # Look for text between common PDF text markers
+                    text_matches = re.findall(r'\((.*?)\)', text_content)
+                    if text_matches:
+                        text_content = ' '.join(text_matches)
+                    else:
+                        # Fallback: extract printable characters
+                        text_content = ''.join(char for char in text_content if char.isprintable())
+                    
+                    # If still no meaningful content, try PyPDF2
+                    if not text_content.strip() or len(text_content.strip()) < 50:
+                        raise ValueError("No text extracted with simple method")
+                        
+                except Exception:
+                    # Fallback to PyPDF2 if available
+                    try:
+                        import PyPDF2
+                        pdf_file = io.BytesIO(file_content)
+                        pdf_reader = PyPDF2.PdfReader(pdf_file)
+                        text_content = ""
+                        
+                        print(f"📄 Processing PDF with {len(pdf_reader.pages)} pages...")
+                        
+                        for page_num, page in enumerate(pdf_reader.pages):
+                            page_text = page.extract_text()
+                            text_content += page_text + "\n"
+                            print(f"  ✓ Extracted {len(page_text)} characters from page {page_num + 1}")
+                            
+                        print(f"✅ Total extracted: {len(text_content)} characters")
+                        
+                    except ImportError:
+                        raise HTTPException(status_code=400, detail="PDF processing library not available. Please convert your PDF to text or try a different file format.")
+                    except Exception as pypdf_error:
+                        print(f"PyPDF2 extraction failed: {str(pypdf_error)}")
+                        text_content = ""
+                        
             except Exception as pdf_error:
-                raise HTTPException(status_code=400, detail=f"Failed to extract text from PDF: {str(pdf_error)}")
+                print(f"PDF processing error: {str(pdf_error)}")
+                # More informative error message
+                error_msg = f"Failed to extract text from PDF: {str(pdf_error)}. "
+                error_msg += "This might be a scanned PDF or image-based document. Please ensure your PDF contains selectable text, or try converting it to a text-based PDF first."
+                raise HTTPException(status_code=400, detail=error_msg)
         elif file.filename and file.filename.endswith(('.doc', '.docx')):
             # Extract text from Word document
             try:
@@ -253,13 +291,28 @@ async def ingest_file(
                 text_content = ""
                 for paragraph in doc.paragraphs:
                     text_content += paragraph.text + "\n"
+            except ImportError:
+                raise HTTPException(status_code=400, detail="Word document processing not available. Please convert to PDF or text format.")
             except Exception as doc_error:
                 raise HTTPException(status_code=400, detail=f"Failed to extract text from Word document: {str(doc_error)}")
         else:
             raise HTTPException(status_code=400, detail="Supports PDF (.pdf), Word (.doc, .docx), text (.txt) and markdown (.md) files.")
         
+        # Debug: Print extracted content info
+        print(f"📝 Extracted text length: {len(text_content)} characters")
+        print(f"📝 First 200 chars: {text_content[:200]}")
+        
         if not text_content.strip():
-            raise HTTPException(status_code=400, detail="No text content found in the uploaded file. This might be a scanned PDF or image-based document. Please try a text-based PDF or convert to text first.")
+            error_msg = "No readable text content found in the uploaded file. "
+            if file.filename and file.filename.endswith('.pdf'):
+                error_msg += "This might be a scanned PDF, image-based document, or password-protected PDF. "
+                error_msg += "Please try: (1) a text-based PDF with selectable text, (2) converting scanned PDF using OCR, or (3) saving as a text file."
+            else:
+                error_msg += "Please check that your file contains readable text content."
+            raise HTTPException(status_code=400, detail=error_msg)
+        
+        if len(text_content.strip()) < 10:
+            raise HTTPException(status_code=400, detail="The extracted text is too short. Please ensure your file contains substantial text content for analysis.")
         
         # Enhanced analysis for file uploads
         enhanced_content = text_content
