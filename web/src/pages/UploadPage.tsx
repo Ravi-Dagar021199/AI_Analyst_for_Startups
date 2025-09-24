@@ -4,6 +4,7 @@ import {
   Button, Box, Typography, TextField, Alert, Card, CardContent, 
   Tabs, Tab, CircularProgress, Chip, Divider
 } from '@mui/material';
+import DataCollectionAgentInfo from '../components/DataCollectionAgentInfo';
 
 interface Analysis {
   analysis_id: string;
@@ -37,6 +38,7 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [agentInfoOpen, setAgentInfoOpen] = useState(false);
 
   // Use API proxy configuration for backend calls
   const API_BASE = '/api';
@@ -302,20 +304,35 @@ export default function UploadPage() {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Supported formats: PDF, Word (.doc/.docx), Text (.txt), Markdown (.md)
             </Typography>
-            <Button
-              variant="contained"
-              onClick={handleFileAnalysis}
-              disabled={loading || !file}
-              sx={{ minWidth: 200 }}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Analyze File with AI'}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                onClick={handleFileAnalysis}
+                disabled={loading || !file}
+                sx={{ minWidth: 200 }}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Analyze File with AI'}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setAgentInfoOpen(true)}
+                sx={{ minWidth: 200 }}
+                color="info"
+              >
+                🤖 Data Collection Agent
+              </Button>
+            </Box>
             {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
           </CardContent>
         </Card>
       )}
 
       {renderAnalysisResults()}
+      
+      <DataCollectionAgentInfo 
+        open={agentInfoOpen} 
+        onClose={() => setAgentInfoOpen(false)} 
+      />
     </Box>
   );
 }
