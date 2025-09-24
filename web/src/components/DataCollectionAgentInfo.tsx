@@ -12,19 +12,9 @@ import {
   Grid,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Divider
 } from '@mui/material';
-import {
-  Psychology as AIIcon,
-  TrendingUp as TrendingIcon,
-  Assessment as MetricsIcon,
-  Business as BusinessIcon,
-  DataObject as DataIcon,
-  SmartToy as AgentIcon,
-  Insights as InsightsIcon
-} from '@mui/icons-material';
 
 interface DataCollectionAgentInfoProps {
   open: boolean;
@@ -34,21 +24,21 @@ interface DataCollectionAgentInfoProps {
 export default function DataCollectionAgentInfo({ open, onClose }: DataCollectionAgentInfoProps) {
   const dataSourceTypes = [
     {
-      icon: <BusinessIcon color="primary" />,
+      icon: "🏢",
       name: "Market Segment Detection",
       description: "Automatically identifies business category",
       examples: ["AI/ML", "FinTech", "HealthTech", "EdTech", "SaaS", "E-commerce"],
       confidence: "High Accuracy"
     },
     {
-      icon: <TrendingIcon color="success" />,
+      icon: "📈",
       name: "Funding Stage Intelligence", 
       description: "Detects current investment stage",
       examples: ["Pre-seed", "Seed", "Series A", "Series B/C", "Growth"],
       confidence: "Pattern Recognition"
     },
     {
-      icon: <MetricsIcon color="info" />,
+      icon: "📊",
       name: "Traction Analysis",
       description: "Extracts key business metrics",
       examples: ["Revenue figures", "User counts", "Growth rates", "Customer metrics"],
@@ -83,7 +73,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <AgentIcon color="primary" fontSize="large" />
+          <Typography variant="h4">🤖</Typography>
           <Box>
             <Typography variant="h5">Enhanced Data Collection Agent</Typography>
             <Typography variant="subtitle2" color="text.secondary">
@@ -96,8 +86,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
       <DialogContent>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <DataIcon color="primary" />
-            What Data Does the Agent Collect?
+            📦 What Data Does the Agent Collect?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             The Enhanced Data Collection Agent automatically extracts and structures key information from your documents:
@@ -109,7 +98,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      {source.icon}
+                      <Typography variant="h4" sx={{ mr: 1 }}>{source.icon}</Typography>
                       <Typography variant="h6" sx={{ ml: 1, fontSize: '1rem' }}>
                         {source.name}
                       </Typography>
@@ -145,8 +134,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
 
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AIIcon color="primary" />
-            How AI Uses This Enhanced Data
+            🧠 How AI Uses This Enhanced Data
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             The agent creates structured intelligence sources that guide AI analysis for more accurate insights:
@@ -155,7 +143,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
           <List>
             {aiUsageSteps.map((step, index) => (
               <ListItem key={index} sx={{ pl: 0 }}>
-                <ListItemIcon>
+                <Box sx={{ mr: 2 }}>
                   <Box 
                     sx={{ 
                       width: 32, 
@@ -171,7 +159,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
                   >
                     {step.step}
                   </Box>
-                </ListItemIcon>
+                </Box>
                 <ListItemText 
                   primary={step.title}
                   secondary={step.description}
@@ -185,8 +173,7 @@ export default function DataCollectionAgentInfo({ open, onClose }: DataCollectio
 
         <Box>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <InsightsIcon color="primary" />
-            Benefits in Your Investment Reports
+            💡 Benefits in Your Investment Reports
           </Typography>
           
           <Card sx={{ backgroundColor: 'success.light', color: 'success.contrastText', mb: 2 }}>
