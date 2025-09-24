@@ -227,13 +227,14 @@ export default function UploadPage() {
       </Typography>
 
       <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
-        <Tab label="Text Analysis" />
-        <Tab label="File Upload" />
+        <Tab label="Analysis" />
+        <Tab label="How it works" />
       </Tabs>
 
       {tabValue === 0 && (
         <Card>
           <CardContent>
+            {/* Text Analysis Section */}
             <Typography variant="h6" gutterBottom>
               Enter Startup Material Text
             </Typography>
@@ -248,40 +249,20 @@ export default function UploadPage() {
             <TextField
               fullWidth
               multiline
-              rows={8}
+              rows={6}
               label="Startup Material Text"
               value={text}
               onChange={(e) => setText(e.target.value)}
               sx={{ mb: 3 }}
               placeholder="Paste pitch deck content, founder updates, company description, or any startup materials here..."
             />
-            <Button
-              variant="contained"
-              onClick={handleTextAnalysis}
-              disabled={loading || !text.trim()}
-              sx={{ minWidth: 200 }}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Analyze with AI'}
-            </Button>
-            {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
-          </CardContent>
-        </Card>
-      )}
 
-      {tabValue === 1 && (
-        <Card>
-          <CardContent>
+            <Divider sx={{ my: 3 }} />
+
+            {/* File Upload Section */}
             <Typography variant="h6" gutterBottom>
-              Upload Document File
+              File Upload
             </Typography>
-            <TextField
-              fullWidth
-              label="Document Title (optional)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              sx={{ mb: 2 }}
-              placeholder="e.g., EcoTech Pitch Deck, Series A Presentation"
-            />
             <Box sx={{ mb: 3 }}>
               <input
                 accept=".pdf,.doc,.docx,.txt,.md"
@@ -301,18 +282,12 @@ export default function UploadPage() {
                 </Typography>
               )}
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Supported formats: PDF, Word (.doc/.docx), Text (.txt), Markdown (.md)
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                onClick={handleFileAnalysis}
-                disabled={loading || !file}
-                sx={{ minWidth: 200 }}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Analyze File with AI'}
-              </Button>
+
+            {/* Data Collection Agent Info */}
+            <Box sx={{ mb: 3 }}>
               <Button
                 variant="outlined"
                 onClick={() => setAgentInfoOpen(true)}
@@ -322,7 +297,125 @@ export default function UploadPage() {
                 🤖 Data Collection Agent
               </Button>
             </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Analysis Buttons */}
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                onClick={handleTextAnalysis}
+                disabled={loading || !text.trim()}
+                sx={{ minWidth: 200 }}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Analyze Text with AI'}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleFileAnalysis}
+                disabled={loading || !file}
+                sx={{ minWidth: 200 }}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Analyze File with AI'}
+              </Button>
+            </Box>
             {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
+          </CardContent>
+        </Card>
+      )}
+
+      {tabValue === 1 && (
+        <Card>
+          <CardContent>
+            <Typography variant="h5" gutterBottom>
+              🚀 How it works
+            </Typography>
+            
+            <Typography variant="h6" gutterBottom sx={{ mt: 3, color: 'primary.main' }}>
+              Complete Process Overview
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Our AI-powered platform transforms startup materials into comprehensive investment insights through an intelligent analysis pipeline.
+            </Typography>
+
+            <Box sx={{ my: 4 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
+                📥 Step 1: Data Input & Collection
+              </Typography>
+              <Typography variant="body2" paragraph sx={{ ml: 2 }}>
+                • <strong>Text Input:</strong> Paste pitch deck content, founder updates, or company descriptions
+                <br />
+                • <strong>File Upload:</strong> Upload PDFs, Word documents, or text files containing startup materials
+                <br />
+                • <strong>Enhanced Data Collection Agent:</strong> Automatically extracts and structures key information
+              </Typography>
+            </Box>
+
+            <Box sx={{ my: 4 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'info.main' }}>
+                🤖 Step 2: AI-Powered Analysis Engine
+              </Typography>
+              <Typography variant="body2" paragraph sx={{ ml: 2 }}>
+                • <strong>Market Segment Detection:</strong> Identifies business category (AI/ML, FinTech, HealthTech, etc.)
+                <br />
+                • <strong>Funding Stage Intelligence:</strong> Detects current investment stage (Pre-seed, Seed, Series A/B/C)
+                <br />
+                • <strong>Traction Analysis:</strong> Extracts revenue, user counts, growth rates, and key metrics
+                <br />
+                • <strong>Context Enhancement:</strong> Provides structured intelligence sources to guide analysis
+              </Typography>
+            </Box>
+
+            <Box sx={{ my: 4 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'warning.main' }}>
+                ⚡ Step 3: Report Generation
+              </Typography>
+              <Typography variant="body2" paragraph sx={{ ml: 2 }}>
+                Our system generates comprehensive investment reports across four key vectors:
+                <br />
+                • <strong>👥 Founder Profile:</strong> Experience assessment and founder-market fit analysis
+                <br />
+                • <strong>🎯 Market Opportunity:</strong> Problem description, market size, and opportunity evaluation
+                <br />
+                • <strong>🚀 Unique Differentiator:</strong> Core innovation and competitive defensibility
+                <br />
+                • <strong>📊 Business Metrics:</strong> Traction analysis and revenue model evaluation
+              </Typography>
+            </Box>
+
+            <Box sx={{ my: 4 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'error.main' }}>
+                📋 Step 4: Investment Insights
+              </Typography>
+              <Typography variant="body2" paragraph sx={{ ml: 2 }}>
+                • <strong>Overall Score:</strong> Comprehensive 1-10 investment rating
+                <br />
+                • <strong>💡 Key Insights:</strong> Strategic opportunities and competitive advantages
+                <br />
+                • <strong>⚠️ Risk Flags:</strong> Potential concerns and areas requiring attention
+                <br />
+                • <strong>Actionable Recommendations:</strong> Data-driven investment decision support
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box sx={{ backgroundColor: 'primary.light', p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'primary.contrastText' }}>
+                🎯 Why Our Enhanced Data Collection Agent?
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'primary.contrastText' }}>
+                <strong>Traditional approach:</strong> Generic AI analysis with limited context
+                <br />
+                <strong>Our approach:</strong> Intelligent preprocessing that identifies market segments, funding stages, and traction metrics before analysis, resulting in:
+                <br />
+                • <strong>Higher Accuracy:</strong> Context-aware analysis with domain intelligence
+                <br />
+                • <strong>Targeted Insights:</strong> Industry-specific recommendations and benchmarks  
+                <br />
+                • <strong>Faster Results:</strong> Pre-structured data enables rapid, comprehensive analysis
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
       )}
