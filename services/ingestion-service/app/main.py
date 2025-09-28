@@ -32,9 +32,9 @@ app = FastAPI(title="AI Startup Analyst - Data Collection Service")
 # Add CORS middleware for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "https://localhost:5000"],  # Production: specify frontend domain only
-    allow_credentials=False,  # Disabled for security - enable only if authentication required
-    allow_methods=["GET", "POST"],  # Only required methods
+    allow_origins=["http://localhost:5173", "http://localhost:5000", "https://localhost:5173", "https://localhost:5000"],  # Frontend URLs
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

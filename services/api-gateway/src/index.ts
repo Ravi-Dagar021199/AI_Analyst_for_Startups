@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Environment configuration
-const ENHANCED_INGESTION_URL = process.env.ENHANCED_INGESTION_URL || 'http://localhost:8002';
+const ENHANCED_INGESTION_URL = process.env.ENHANCED_INGESTION_URL || 'http://localhost:8000'; // Fixed to use port 8000
 const DATA_CURATION_URL = process.env.DATA_CURATION_URL || 'http://localhost:3003';
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3001';
 const REPORTING_SERVICE_URL = process.env.REPORTING_SERVICE_URL || 'http://localhost:3002';

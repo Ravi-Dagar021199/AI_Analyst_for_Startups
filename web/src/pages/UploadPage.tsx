@@ -51,8 +51,8 @@ export default function UploadPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [agentInfoOpen, setAgentInfoOpen] = useState(false);
 
-  // Use enhanced ingestion API
-  const API_BASE = '/api/enhanced-ingestion';
+  // Use proxy through Vite dev server for cross-origin requests
+  const API_BASE = '/api/ingestion';
 
   const handleFileUpload = async () => {
     if (!file) {
@@ -71,7 +71,7 @@ export default function UploadPage() {
       formData.append('context', context);
       formData.append('extract_external_data', extractExternalData.toString());
 
-      const response = await axios.post(`${API_BASE}/upload/single`, formData, {
+      const response = await axios.post(`${API_BASE}/ingest-file/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

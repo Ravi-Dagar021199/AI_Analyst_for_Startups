@@ -10,10 +10,10 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
+      '/api/ingestion': {
+        target: 'http://ai_analyst_for_startups-ingestion-service-1:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api\/ingestion/, ''),
       },
     },
   }

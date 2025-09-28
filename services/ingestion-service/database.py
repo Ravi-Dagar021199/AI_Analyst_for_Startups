@@ -13,20 +13,26 @@ import uuid
 # Database connection
 DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is required")
+    print("⚠️ DATABASE_URL not found - using SQLite for demo mode")
+    DATABASE_URL = "sqlite:///./startup_analysis.db"
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,
-    pool_recycle=3600,
-    connect_args={
-        "sslmode": "prefer",
-        "connect_timeout": 60,
-        "application_name": "ai_startup_analyst"
-    }
-)
+# Handle different database types
+if "sqlite" in DATABASE_URL:
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # PostgreSQL configuration
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        connect_args={
+            "sslmode": "prefer",
+            "connect_timeout": 60,
+            "application_name": "ai_startup_analyst"
+        }
+    )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
