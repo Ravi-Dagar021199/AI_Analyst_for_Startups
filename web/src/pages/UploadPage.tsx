@@ -2,8 +2,15 @@ import { useState } from 'react';
 import axios from 'axios';
 import { 
   Button, Box, Typography, TextField, Alert, Card, CardContent, 
-  Tabs, Tab, CircularProgress, Chip, Divider
+  Tabs, Tab, CircularProgress, Chip, Divider, FormControlLabel,
+  Checkbox, LinearProgress
 } from '@mui/material';
+import { 
+  CloudUpload as UploadIcon, 
+  Description as DocIcon,
+  VideoFile as VideoIcon,
+  Image as ImageIcon 
+} from '@mui/icons-material';
 import DataCollectionAgentInfo from '../components/DataCollectionAgentInfo';
 
 interface Analysis {
@@ -35,13 +42,109 @@ export default function UploadPage() {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [context, setContext] = useState('');
+  const [extractExternalData, setExtractExternalData] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [agentInfoOpen, setAgentInfoOpen] = useState(false);
 
-  // Use API proxy configuration for backend calls
-  const API_BASE = '/api';
+  // Use enhanced ingestion API
+  const API_BASE = '/api/enhanced-ingestion';
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      setErrorMessage('Please select a file to upload.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
+    setUploadProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', title || file.name);
+      formData.append('context', context);
+      formData.append('extract_external_data', extractExternalData.toString());
+
+      const response = await axios.post(`${API_BASE}/upload/single`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
+          setUploadProgress(percentCompleted);
+        }
+      });
+
+      // Show upload success message
+      alert(`File uploaded successfully! Processing started. File ID: ${response.data.file_id}`);
+      
+      // Reset form
+      setFile(null);
+      setTitle('');
+      setContext('');
+      setExtractExternalData(false);
+
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      setErrorMessage(error.response?.data?.detail || 'Upload failed. Please try again.');
+    } finally {
+      setLoading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleBulkUpload = async () => {
+    if (!files || files.length === 0) {
+      setErrorMessage('Please select files to upload.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
+    setUploadProgress(0);
+
+    try {
+      const formData = new FormData();
+      
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      formData.append('context', context);
+      formData.append('extract_external_data', extractExternalData.toString());
+
+      const response = await axios.post(`${API_BASE}/upload/bulk`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
+          setUploadProgress(percentCompleted);
+        }
+      });
+
+      // Show bulk upload results
+      const { batch_id, accepted_files, rejected_files } = response.data;
+      alert(`Bulk upload completed!\nBatch ID: ${batch_id}\nAccepted: ${accepted_files} files\nRejected: ${rejected_files.length} files`);
+      
+      // Reset form
+      setFiles(null);
+      setContext('');
+      setExtractExternalData(false);
+
+    } catch (error: any) {
+      console.error('Bulk upload error:', error);
+      setErrorMessage(error.response?.data?.detail || 'Bulk upload failed. Please try again.');
+    } finally {
+      setLoading(false);
+      setUploadProgress(0);
+    }
+  };
 
   const handleTextAnalysis = async () => {
     if (!text.trim()) {

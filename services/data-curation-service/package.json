@@ -1,0 +1,22 @@
+{
+  "name": "data-curation-service",
+  "version": "1.0.0",
+  "description": "Data curation service for AI startup analyst",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "fastify": "^4.24.3",
+    "@fastify/cors": "^8.4.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2",
+    "@types/node": "^20.9.5",
+    "ts-node": "^10.9.1"
+  }
+}
