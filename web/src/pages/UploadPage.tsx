@@ -7,10 +7,10 @@ import {
 } from '@mui/material';
 import { 
   CloudUpload as UploadIcon, 
-  Description as DocIcon,
   VideoFile as VideoIcon,
   Image as ImageIcon 
 } from '@mui/icons-material';
+import DescriptionIcon from '@mui/icons-material/Description';
 import DataCollectionAgentInfo from '../components/DataCollectionAgentInfo';
 
 interface Analysis {
@@ -41,8 +41,7 @@ export default function UploadPage() {
   const [tabValue, setTabValue] = useState(0);
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
-  const [files, setFiles] = useState<File[]>([]); // Changed: Now array of files instead of single file
-  const [bulkFiles, setBulkFiles] = useState<FileList | null>(null); // Renamed for clarity
+  const [files, setFiles] = useState<File[]>([]); // Array to store multiple selected files
   const [context, setContext] = useState('');
   const [extractExternalData, setExtractExternalData] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,8 +56,8 @@ export default function UploadPage() {
   const API_BASE = '/api/ingestion';
 
   const handleFileUpload = async () => {
-    if (!file) {
-      setErrorMessage('Please select a file to upload.');
+    if (files.length === 0) {
+      setErrorMessage('Please select at least one file to upload.');
       return;
     }
 
@@ -67,27 +66,40 @@ export default function UploadPage() {
     setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('title', title || file.name);
-      formData.append('context', context);
-      formData.append('extract_external_data', extractExternalData.toString());
+      const uploadResults = [];
+      const totalFiles = files.length;
 
-      const response = await axios.post(`${API_BASE}/ingest-file/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
-          setUploadProgress(percentCompleted);
-        }
-      });
+      for (let i = 0; i < totalFiles; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', title || file.name);
+        formData.append('context', context);
+        formData.append('extract_external_data', extractExternalData.toString());
+
+        const response = await axios.post(`${API_BASE}/ingest-file/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const fileProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
+            const totalProgress = Math.round(((i * 100) + fileProgress) / totalFiles);
+            setUploadProgress(totalProgress);
+          }
+        });
+
+        uploadResults.push({
+          fileName: file.name,
+          fileId: response.data.file_id,
+          status: 'success'
+        });
+      }
 
       // Show upload success message
-      alert(`File uploaded successfully! Processing started. File ID: ${response.data.file_id}`);
+      alert(`${uploadResults.length} file(s) uploaded successfully! Processing started.`);
       
       // Reset form
-      setFile(null);
+      setFiles([]);
       setTitle('');
       setContext('');
       setExtractExternalData(false);
@@ -102,7 +114,7 @@ export default function UploadPage() {
   };
 
   const handleBulkUpload = async () => {
-    if (!bulkFiles || bulkFiles.length === 0) {
+    if (files.length === 0) {
       setErrorMessage('Please select files to upload.');
       return;
     }
@@ -114,9 +126,9 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       
-      for (let i = 0; i < bulkFiles.length; i++) {
-        formData.append('files', bulkFiles[i]);
-      }
+      files.forEach(file => {
+        formData.append('files', file);
+      });
       formData.append('context', context);
       formData.append('extract_external_data', extractExternalData.toString());
 
@@ -135,7 +147,7 @@ export default function UploadPage() {
       alert(`Bulk upload completed!\nBatch ID: ${batch_id}\nAccepted: ${accepted_files} files\nRejected: ${rejected_files.length} files`);
       
       // Reset form
-      setBulkFiles(null);
+      setFiles([]);
       setContext('');
       setExtractExternalData(false);
 
@@ -598,27 +610,71 @@ export default function UploadPage() {
                 multiple
                 onChange={(e) => {
                   if (e.target.files) {
-                    setFiles(Array.from(e.target.files));
-                  } else {
-                    setFiles([]);
+                    // Append newly selected files to existing files array
+                    const newFiles = Array.from(e.target.files);
+                    setFiles(prevFiles => [...prevFiles, ...newFiles]);
                   }
                 }}
               />
               <label htmlFor="file-upload">
                 <Button variant="outlined" component="span" sx={{ mr: 2 }}>
-                  📁 Choose Files
+                  📁 Choose Files (Multiple)
                 </Button>
               </label>
               {files.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" component="div">
-                    Selected files ({files.length}):
+                <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'grey.300', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    📎 Attached Files ({files.length}):
                   </Typography>
                   {files.map((file, index) => (
-                    <Typography key={index} variant="body2" sx={{ ml: 2 }}>
-                      • {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                    </Typography>
+                    <Box 
+                      key={index} 
+                      sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        py: 1,
+                        px: 2,
+                        mb: 1,
+                        backgroundColor: 'grey.50',
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'grey.200'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <DescriptionIcon color="primary" fontSize="small" />
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {file.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {(file.size / 1024).toFixed(1)} KB • {file.type || 'Unknown type'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => {
+                          setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+                        }}
+                        sx={{ minWidth: 'auto', px: 2 }}
+                      >
+                        Remove
+                      </Button>
+                    </Box>
                   ))}
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="error"
+                    onClick={() => setFiles([])}
+                    sx={{ mt: 1 }}
+                  >
+                    Clear All Files
+                  </Button>
                 </Box>
               )}
             </Box>

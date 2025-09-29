@@ -26,7 +26,7 @@ app.use('/api/enhanced-ingestion', createProxyMiddleware({
   pathRewrite: {
     '^/api/enhanced-ingestion': '',
   },
-  onError: (err, req, res) => {
+  onError: (err: any, req: Request, res: Response) => {
     console.error('Enhanced Ingestion Service proxy error:', err.message);
     res.status(503).json({ error: 'Enhanced Ingestion Service unavailable' });
   }
@@ -39,7 +39,7 @@ app.use('/api/curation', createProxyMiddleware({
   pathRewrite: {
     '^/api/curation': '',
   },
-  onError: (err, req, res) => {
+  onError: (err: any, req: Request, res: Response) => {
     console.error('Data Curation Service proxy error:', err.message);
     res.status(503).json({ error: 'Data Curation Service unavailable' });
   }
@@ -52,7 +52,7 @@ app.use('/api/users', createProxyMiddleware({
   pathRewrite: {
     '^/api/users': '',
   },
-  onError: (err, req, res) => {
+  onError: (err: any, req: Request, res: Response) => {
     console.error('User Service proxy error:', err.message);
     res.status(503).json({ error: 'User Service unavailable' });
   }
@@ -65,7 +65,7 @@ app.use('/api/reports', createProxyMiddleware({
   pathRewrite: {
     '^/api/reports': '',
   },
-  onError: (err, req, res) => {
+  onError: (err: any, req: Request, res: Response) => {
     console.error('Reporting Service proxy error:', err.message);
     res.status(503).json({ error: 'Reporting Service unavailable' });
   }
