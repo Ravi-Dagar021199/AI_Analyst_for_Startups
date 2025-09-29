@@ -1,0 +1,59 @@
+### Development Environment Setup
+
+This is a .http file for testing your API endpoints directly in VS Code.
+Install the "REST Client" extension to use this file.
+
+### Variables
+@apiGatewayUrl = http://localhost:3000
+@userServiceUrl = http://localhost:3001
+@reportingServiceUrl = http://localhost:3002
+@ingestionServiceUrl = http://localhost:8000
+@analysisServiceUrl = http://localhost:8001
+
+### API Gateway Health Check
+GET {{apiGatewayUrl}}/health
+
+### User Service Health Check
+GET {{userServiceUrl}}/health
+
+### Reporting Service Health Check
+GET {{reportingServiceUrl}}/health
+
+### Ingestion Service Health Check
+GET {{ingestionServiceUrl}}/health
+
+### Analysis Service Health Check
+GET {{analysisServiceUrl}}/health
+
+### Test User Registration (if applicable)
+POST {{userServiceUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "testpassword123",
+  "name": "Test User"
+}
+
+### Test User Login (if applicable)
+POST {{userServiceUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "testpassword123"
+}
+
+### Upload Test Document (if applicable)
+POST {{ingestionServiceUrl}}/api/documents/upload
+Content-Type: multipart/form-data; boundary=boundary123
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+[File content would go here]
+--boundary123--
+
+### Get Analysis Results (if applicable)
+GET {{analysisServiceUrl}}/api/analysis/results/test-startup-id

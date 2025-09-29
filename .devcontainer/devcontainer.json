@@ -1,0 +1,170 @@
+{
+  "name": "AI Analyst for Startups",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.devcontainer.yml"],
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+        "eslint.workingDirectories": ["web", "services/api-gateway", "services/user-service", "services/reporting-service", "services/data-curation-service"],
+        "typescript.preferences.includePackageJsonAutoImports": "on",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        },
+        "docker.defaultRegistryPath": "localhost:5000",
+        "files.associations": {
+          "*.json": "jsonc"
+        }
+      },
+      
+      "extensions": [
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        
+        // Node.js/TypeScript
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        
+        // React
+        "ms-vscode.vscode-react-javascript",
+        
+        // Docker & DevOps
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+        
+        // Git
+        "eamodio.gitlens",
+        
+        // General productivity
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.hexeditor",
+        "streetsidesoftware.code-spell-checker",
+        
+        // Firebase
+        "toba.vsfire",
+        
+        // API Development
+        "humao.rest-client",
+        
+        // Database
+        "cweijan.vscode-database-client2"
+      ]
+    }
+  },
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "18",
+      "nvmVersion": "0.39.0"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11",
+      "installTools": true,
+      "optimize": true
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    }
+  },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    3000, // API Gateway
+    3001, // User Service
+    3002, // Reporting Service
+    5173, // Frontend (Vite dev server)
+    8000, // Ingestion Service
+    8001  // Analysis Service
+  ],
+
+  // Port attributes
+  "portsAttributes": {
+    "3000": {
+      "label": "API Gateway",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "User Service",
+      "onAutoForward": "silent"
+    },
+    "3002": {
+      "label": "Reporting Service", 
+      "onAutoForward": "silent"
+    },
+    "5173": {
+      "label": "Frontend (React)",
+      "onAutoForward": "openPreview"
+    },
+    "8000": {
+      "label": "Ingestion Service",
+      "onAutoForward": "silent"
+    },
+    "8001": {
+      "label": "Analysis Service",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  // Use 'postStartCommand' to run commands after the container starts.
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  // Configure tool-specific properties.
+  "remoteUser": "vscode",
+
+  // Increase the container size for large projects
+  "hostRequirements": {
+    "memory": "8gb",
+    "cpus": 4,
+    "storage": "32gb"
+  },
+
+  // Mount the Docker socket for Docker-in-Docker
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+  ]
+}

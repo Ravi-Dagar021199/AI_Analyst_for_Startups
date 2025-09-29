@@ -1,0 +1,74 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Frontend (React)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173,
+      "serverReadyAction": {
+        "pattern": "Local:   http://localhost:([0-9]+)",
+        "uriFormat": "http://localhost:%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "Launch API Gateway",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/services/api-gateway/dist/index.js",
+      "cwd": "${workspaceFolder}/services/api-gateway",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "outFiles": ["${workspaceFolder}/services/api-gateway/dist/**/*.js"],
+      "sourceMaps": true
+    },
+    {
+      "name": "Debug Ingestion Service (Python)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/services/ingestion-service/app/main.py",
+      "cwd": "${workspaceFolder}/services/ingestion-service",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/services/ingestion-service"
+      },
+      "args": ["--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Analysis Service (Python)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/services/analysis-service/app/main.py",
+      "cwd": "${workspaceFolder}/services/analysis-service",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/services/analysis-service"
+      },
+      "args": ["--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Attach to Docker Container",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Full Stack",
+      "configurations": [
+        "Launch Frontend (React)",
+        "Launch API Gateway"
+      ]
+    }
+  ]
+}

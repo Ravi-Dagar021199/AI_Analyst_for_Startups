@@ -1,0 +1,78 @@
+{
+  "folders": [
+    {
+      "name": "🌐 Frontend (React)",
+      "path": "./web"
+    },
+    {
+      "name": "🚪 API Gateway",
+      "path": "./services/api-gateway"
+    },
+    {
+      "name": "👤 User Service",
+      "path": "./services/user-service"
+    },
+    {
+      "name": "📊 Reporting Service",
+      "path": "./services/reporting-service"
+    },
+    {
+      "name": "📥 Ingestion Service",
+      "path": "./services/ingestion-service"
+    },
+    {
+      "name": "🔍 Analysis Service",
+      "path": "./services/analysis-service"
+    },
+    {
+      "name": "🔧 Enhanced Ingestion",
+      "path": "./services/enhanced-ingestion-service"
+    },
+    {
+      "name": "⚙️ Preprocessing Worker",
+      "path": "./services/preprocessing-worker"
+    },
+    {
+      "name": "📋 Data Curation",
+      "path": "./services/data-curation-service"
+    },
+    {
+      "name": "🏠 Project Root",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/dist": true,
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/.pytest_cache": true,
+      "**/.mypy_cache": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/__pycache__": true,
+      "**/.pytest_cache": true,
+      "**/.mypy_cache": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-python.black-formatter",
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-azuretools.vscode-docker",
+      "eamodio.gitlens",
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "humao.rest-client"
+    ]
+  }
+}
